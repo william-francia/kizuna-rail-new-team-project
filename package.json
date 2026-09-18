@@ -2,7 +2,8 @@
 	"name": "kizuna-rail-byui-demo",
 	"dependencies": {
 		"ejs": "^3.1.10",
-		"express": "^5.1.0"
+		"express": "^5.1.0",
+		"mongoose": "^9.10.1"
 	},
 	"scripts": {
 		"dev": "nodemon --env-file=.env server.js",

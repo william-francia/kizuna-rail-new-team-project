@@ -4,7 +4,8 @@ import Path from 'path';
 import routes from './src/routes/router.js';
 import pkg from './package.json' with { type: 'json' };
 import { fileURLToPath } from 'url';
-import { initializeDatabase } from './src/models/db-in-file.js';
+import connectDB from './src/models/db.js';
+
 
 /**
  * Declare Important Variables
@@ -13,7 +14,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = Path.dirname(__filename);
 const NODE_ENV = process.env.NODE_ENV?.toLowerCase() || 'production';
 const PORT = process.env.PORT || 3000;
-const DATABASE_FILE = Path.join(__dirname, 'src/models/db-in-file.json');
+
 
 /**
  * Setup Express Server
@@ -23,9 +24,6 @@ const app = express();
 /**
  * Configure Express middleware
  */
-
-// Setup file-based database
-initializeDatabase(DATABASE_FILE);
 
 // Add version info to res.locals for access in templates
 app.use((req, res, next) => {
@@ -111,6 +109,17 @@ if (NODE_ENV.includes('dev')) {
 /**
  * Start Server
  */
-app.listen(PORT, async () => {
-    console.log(`Server is running on http://127.0.0.1:${PORT}`);
-});
+const startServer = async () => {
+    try {
+        await connectDB();
+
+        app.listen(PORT, () => {
+            console.log(`Server is running on http://127.0.0.1:${PORT}`);
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
+};
+
+startServer();
