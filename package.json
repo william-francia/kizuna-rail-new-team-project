@@ -1,19 +1,26 @@
 {
-	"name": "kizuna-rail-byui-demo",
-	"dependencies": {
-		"ejs": "^3.1.10",
-		"express": "^5.1.0",
-		"mongoose": "^9.10.1"
-	},
-	"scripts": {
-		"dev": "nodemon --env-file=.env server.js",
-		"reset": "node restore.js 3000 3001",
-		"start": "node server.js"
-	},
-	"type": "module",
-	"version": "1.0.0",
-	"devDependencies": {
-		"nodemon": "^3.1.10",
-		"ws": "^8.18.3"
-	}
+  "name": "kizuna-rail-byui-demo",
+  "dependencies": {
+    "dotenv": "^18.0.1",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "mongoose": "^9.10.1",
+    "swagger-jsdoc": "^6.3.0",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "scripts": {
+    "dev": "nodemon server.js",
+    "reset": "node restore.js 3000 3001",
+    "start": "node server.js",
+    "lint": "eslint .",
+    "seed": "node --env-file=.env seed.js"
+  },
+  "type": "module",
+  "version": "1.0.0",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.11.0",
+    "nodemon": "^3.1.10",
+    "ws": "^8.18.3"
+  }
 }

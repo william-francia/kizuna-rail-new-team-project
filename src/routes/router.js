@@ -1,23 +1,21 @@
-import challengeScenariosRouter from './scenarios.js';
-import railRoutesRouter from './routes.js';
-import { Router } from 'express';
-import { homePage, aboutPage, testErrorPage } from './index.js';
+import challengeScenariosRouter from "./scenarios.js";
+import railRoutesRouter from "./routes.js";
+import apiRouter from "./api-routes.js";
+import { Router } from "express";
+import { homePage, aboutPage, testErrorPage } from "./index.js";
 
 const router = Router();
 
-// Home page
-router.get('/', homePage);
+router.get("/", homePage);
 
-// About page
-router.get('/about', aboutPage);
+router.get("/about", aboutPage);
 
-// Rail routes
-router.use('/routes', railRoutesRouter);
+router.use("/routes", railRoutesRouter);
 
-// Challenge scenarios
-router.use('/scenarios', challengeScenariosRouter);
+router.use("/scenarios", challengeScenariosRouter);
 
-// Test 500 error page
-router.get('/500', testErrorPage);
+router.use("/api", apiRouter);
+
+router.get("/500", testErrorPage);
 
 export default router;
