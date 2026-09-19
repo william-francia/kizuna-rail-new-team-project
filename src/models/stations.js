@@ -1,4 +1,4 @@
-import Station from './schemas/stations.js';
+import Station from './schemas/station.js';
 
 export async function getAllStations() {
     return await Station.find({});
