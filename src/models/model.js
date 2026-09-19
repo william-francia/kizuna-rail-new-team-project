@@ -1,4 +1,3 @@
-import { generateConfirmationCode } from '../includes/helpers.js';
 import { getDb as db } from './db-in-file.js';
 
 // ROUTE MODEL FUNCTIONS
@@ -211,28 +210,4 @@ export const searchRoutes = async (keyword) => {
             route.highlights.some(highlight => highlight.toLowerCase().includes(searchTerm))
         );
     });
-};
-
-// CONFIRMATION MODEL FUNCTIONS
-
-export const createConfirmation = async (confirmationData) => {
-    const dbObj = db();
-    const newConfirmation = {
-        id: generateConfirmationCode(),
-        createdAt: new Date().toISOString(),
-        ...confirmationData
-    };
-    
-    // Auto-saves via Proxy
-    dbObj.confirmations = [...dbObj.confirmations, newConfirmation];
-    
-    return newConfirmation.id;
-};
-
-export const getConfirmationById = async (confirmationId) => {
-    return db().confirmations.find(conf => conf.id === confirmationId) || null;
-};
-
-export const getAllConfirmations = async () => {
-    return db().confirmations;
 };

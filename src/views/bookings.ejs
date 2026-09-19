@@ -1,0 +1,119 @@
+<%- include('partials/header') %>
+<article class="bookings-admin-page">
+    <div class="route-header">
+        <div class="route-header-content">
+            <h1 class="route-name"><%= title %></h1>
+            <p class="route-description">Every booking received, newest first.</p>
+        </div>
+    </div>
+
+    <section class="bookings-admin">
+        <p id="bookings-status" class="bookings-status" aria-live="polite">Loading bookings...</p>
+
+        <div class="bookings-table-wrapper">
+            <table class="bookings-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Booking Reference</th>
+                        <th scope="col">Route</th>
+                        <th scope="col">Schedule</th>
+                        <th scope="col">Ticket Class</th>
+                        <th scope="col">Travel Day</th>
+                        <th scope="col">Passengers</th>
+                        <th scope="col">Passenger Names</th>
+                        <th scope="col">Booked On</th>
+                    </tr>
+                </thead>
+                <tbody id="bookings-list"></tbody>
+            </table>
+        </div>
+    </section>
+</article>
+
+<template id="booking-row-template">
+    <tr>
+        <td class="booking-code"></td>
+        <td class="booking-route"></td>
+        <td class="booking-schedule"></td>
+        <td class="booking-ticket"></td>
+        <td class="booking-day"></td>
+        <td class="booking-passenger-count"></td>
+        <td class="booking-passengers"></td>
+        <td class="booking-created"></td>
+    </tr>
+</template>
+
+<style>
+    .bookings-admin { padding: 1rem; }
+    .bookings-status { margin-bottom: 1rem; }
+    .bookings-table-wrapper { overflow-x: auto; }
+    .bookings-table { width: 100%; border-collapse: collapse; }
+    .bookings-table th,
+    .bookings-table td {
+        padding: 0.5rem 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid rgba(128, 128, 128, 0.3);
+    }
+</style>
+
+<script>
+    const statusMessage = document.querySelector('#bookings-status');
+    const bookingList = document.querySelector('#bookings-list');
+    const bookingRowTemplate = document.querySelector('#booking-row-template');
+
+    const fetchBookings = async () => {
+        const response = await fetch('/api/bookings');
+
+        if (!response.ok) {
+            throw new Error('Unable to load bookings.');
+        }
+
+        return response.json();
+    };
+
+    const renderBookings = (bookings) => {
+        const fragment = document.createDocumentFragment();
+
+        bookings.forEach((booking) => {
+            const passengers = booking.passengers || [];
+            const row = bookingRowTemplate.content.cloneNode(true);
+
+            row.querySelector('.booking-code').textContent = booking.id;
+            row.querySelector('.booking-route').textContent = booking.routeId;
+            row.querySelector('.booking-schedule').textContent = booking.scheduleId;
+            row.querySelector('.booking-ticket').textContent = booking.ticketClass;
+            row.querySelector('.booking-day').textContent = booking.selectedDay;
+            row.querySelector('.booking-passenger-count').textContent = passengers.length;
+            row.querySelector('.booking-passengers').textContent = passengers
+                .map((passenger) => `${passenger.firstName} ${passenger.lastName}`)
+                .join(', ');
+            row.querySelector('.booking-created').textContent = new Date(booking.createdAt)
+                .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+            fragment.append(row);
+        });
+
+        bookingList.replaceChildren(fragment);
+    };
+
+    const loadBookings = async () => {
+        statusMessage.textContent = 'Loading bookings...';
+
+        try {
+            const bookings = await fetchBookings();
+
+            renderBookings(bookings);
+
+            statusMessage.textContent = bookings.length === 0
+                ? 'No bookings yet. New bookings appear here after someone completes the booking form.'
+                : `Showing ${bookings.length} booking${bookings.length === 1 ? '' : 's'}.`;
+        } catch (error) {
+            bookingList.replaceChildren();
+            statusMessage.textContent = 'Bookings could not be loaded. Refresh the page to try again.';
+        }
+    };
+
+    loadBookings();
+</script>
+
+<%- include('partials/footer') %>

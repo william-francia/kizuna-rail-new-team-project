@@ -1,10 +1,12 @@
 import express from 'express';
+import swaggerUi from 'swagger-ui-express';
 import globalMiddleware from './src/middleware/global.js';
 import Path from 'path';
 import routes from './src/routes/router.js';
 import pkg from './package.json' with { type: 'json' };
 import { fileURLToPath } from 'url';
 import connectDB from './src/models/db.js';
+import swaggerSpec from './src/config/swagger.js';
 
 
 /**
@@ -49,6 +51,13 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
  */
 
 app.use(globalMiddleware);
+
+/**
+ * API Documentation
+ */
+
+// Swagger UI for the JSON API
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 /**
  * Routes
