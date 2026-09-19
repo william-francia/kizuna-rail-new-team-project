@@ -1,4 +1,68 @@
 <%- include('../partials/header') %>
+<style>
+  /* Styles for station info button & icon */
+  .station-info-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-left: 6px;
+    vertical-align: middle;
+    transition: transform 0.2s ease;
+  }
+  .station-info-btn:hover {
+    transform: scale(1.2);
+  }
+
+  /* Styles for Modal Pop-up */
+  .station-modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .station-modal-content {
+    background-color: #ffffff;
+    color: #333333;
+    padding: 24px;
+    border-radius: 8px;
+    max-width: 480px;
+    width: 90%;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    position: relative;
+  }
+
+  .close-modal-btn {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: #666;
+  }
+
+  .close-modal-btn:hover {
+    color: #000;
+  }
+
+  .loading-spinner {
+    text-align: center;
+    font-style: italic;
+    color: #666;
+    margin: 20px 0;
+  }
+</style>
+
+
 
 <article class="route-detail">
     <div class="route-header">
@@ -51,10 +115,14 @@
                 <div class="station">
                     <span class="station-label">Start</span>
                     <span class="station-name"><%= details.startStation.charAt(0).toUpperCase() + details.startStation.slice(1) %></span>
+                    <!-- Button to trigger the startStation API call -->
+                    <button type="button" class="station-info-btn" title="View Station Info" onclick="fetchStationDetails('<%= details.startStationId || details.startStation %>')">ℹ️</button>
                 </div>
                 <div class="station">
                     <span class="station-label">End</span>
                     <span class="station-name"><%= details.endStation.charAt(0).toUpperCase() + details.endStation.slice(1) %></span>
+                    <!-- Button to trigger the endStation API call -->
+                    <button type="button" class="station-info-btn" title="View Station Info" onclick="fetchStationDetails('<%= details.endStationId || details.endStation %>')">ℹ️</button>
                 </div>
             </div>
         </div>
@@ -98,5 +166,62 @@
         <% } %>
     </div>
 </article>
+
+<!-- Modal Pop-up to display station details -->
+<div id="stationModal" class="station-modal">
+  <div class="station-modal-content">
+    <button class="close-modal-btn" onclick="closeStationModal()">&times;</button>
+    <div id="stationModalDetails"></div>
+  </div>
+</div>
+
+<script>
+  async function fetchStationDetails(stationIdentifier) {
+    const modal = document.getElementById('stationModal');
+    const detailsContainer = document.getElementById('stationModalDetails');
+
+    modal.style.display = 'flex';
+    detailsContainer.innerHTML = '<p class="loading-spinner">Loading station details...</p>';
+
+    try {
+      const response = await fetch(`/api/stations/${stationIdentifier}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch station details');
+      }
+
+      const station = await response.json();
+
+      detailsContainer.innerHTML = `
+        <h2 style="margin-top:0;">${station.name || stationIdentifier}</h2>
+        ${station.prefecture ? `<p><strong>Prefecture:</strong> ${station.prefecture}</p>` : ''}
+        ${station.region ? `<p><strong>Region:</strong> ${station.region}</p>` : ''}
+        ${station.description ? `<p><strong>Description:</strong> ${station.description}</p>` : ''}
+        ${station.facilities && station.facilities.length > 0 ? `
+          <p><strong>Facilities:</strong></p>
+          <ul>
+            ${station.facilities.map(facility => `<li>${facility}</li>`).join('')}
+          </ul>
+        ` : ''}
+      `;
+    } catch (error) {
+      console.error('Error:', error);
+      detailsContainer.innerHTML = `
+        <p style="color: #d9534f;">Could not load station details.</p>
+      `;
+    }
+  }
+
+  function closeStationModal() {
+    document.getElementById('stationModal').style.display = 'none';
+  }
+
+  window.onclick = function(event) {
+    const modal = document.getElementById('stationModal');
+    if (event.target === modal) {
+      modal.style.display = 'none';
+    }
+  };
+</script>
 
 <%- include('../partials/footer') %>
