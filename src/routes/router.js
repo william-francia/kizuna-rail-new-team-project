@@ -1,5 +1,7 @@
 import challengeScenariosRouter from './scenarios.js';
 import railRoutesRouter from './routes.js';
+import apiRouter from './api-routes.js';
+
 import { Router } from 'express';
 import { homePage, aboutPage, testErrorPage } from './index.js';
 
@@ -10,6 +12,9 @@ router.get('/', homePage);
 
 // About page
 router.get('/about', aboutPage);
+
+// API routes
+router.use('/api', apiRouter);
 
 // Rail routes
 router.use('/routes', railRoutesRouter);

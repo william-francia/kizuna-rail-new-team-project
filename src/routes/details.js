@@ -1,13 +1,13 @@
-import { getRouteById, getSchedulesByRoute } from '../models/model.js';
+import { getRouteById } from '../models/model.js';
 
 export default async (req, res) => {
     const { routeId } = req.params;
+
     const details = await getRouteById(routeId);
-    details.schedules = await getSchedulesByRoute(routeId);
 
-    // TODO: getCompleteRouteDetails instead
+    // Schedules are loaded later by the client through the API.
 
-    res.render('routes/details', { 
+    res.render('routes/details', {
         title: 'Route Details',
         details
     });
