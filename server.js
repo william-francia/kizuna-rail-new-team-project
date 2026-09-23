@@ -6,7 +6,7 @@ import pkg from './package.json' with { type: 'json' };
 import { fileURLToPath } from 'url';
 import connectDB from './src/models/db.js';
 import swaggerUi from 'swagger-ui-express';
-import swaggerSpec from './swagger.js';
+import swaggerSpec from './src/swagger.js';
 
 
 /**
@@ -54,7 +54,7 @@ app.use(globalMiddleware);
 
 /**
  * Routes
-*/
+ */
 
 // Swagger API documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
