@@ -180,36 +180,66 @@
     const detailsContainer = document.getElementById('stationModalDetails');
 
     modal.style.display = 'flex';
-    detailsContainer.innerHTML = '<p class="loading-spinner">Loading station details...</p>';
-
+  detailsContainer.textContent = '';
     try {
-      const response = await fetch(`/api/stations/${stationIdentifier}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch station details');
-      }
-
-      const station = await response.json();
-
-      detailsContainer.innerHTML = `
-        <h2 style="margin-top:0;">${station.name || stationIdentifier}</h2>
-        ${station.prefecture ? `<p><strong>Prefecture:</strong> ${station.prefecture}</p>` : ''}
-        ${station.region ? `<p><strong>Region:</strong> ${station.region}</p>` : ''}
-        ${station.description ? `<p><strong>Description:</strong> ${station.description}</p>` : ''}
-        ${station.facilities && station.facilities.length > 0 ? `
-          <p><strong>Facilities:</strong></p>
-          <ul>
-            ${station.facilities.map(facility => `<li>${facility}</li>`).join('')}
-          </ul>
-        ` : ''}
-      `;
-    } catch (error) {
-      console.error('Error:', error);
-      detailsContainer.innerHTML = `
-        <p style="color: #d9534f;">Could not load station details.</p>
-      `;
+    const response = await fetch(`/api/stations/${stationIdentifier}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch station details');
     }
+
+    const station = await response.json();
+    detailsContainer.textContent = '';
+
+    const title = document.createElement('h2');
+    title.style.marginTop = '0';
+    title.textContent = station.name || stationIdentifier;
+    detailsContainer.appendChild(title);
+
+    if (station.prefecture) {
+      const p = document.createElement('p');
+      p.innerHTML = '<strong>Prefecture:</strong> ';
+      p.appendChild(document.createTextNode(station.prefecture));
+      detailsContainer.appendChild(p);
+    }
+
+    if (station.region) {
+      const p = document.createElement('p');
+      p.innerHTML = '<strong>Region:</strong> ';
+      p.appendChild(document.createTextNode(station.region));
+      detailsContainer.appendChild(p);
+    }
+
+    if (station.description) {
+      const p = document.createElement('p');
+      p.innerHTML = '<strong>Description:</strong> ';
+      p.appendChild(document.createTextNode(station.description));
+      detailsContainer.appendChild(p);
+    }
+
+    if (station.facilities && station.facilities.length > 0) {
+      const p = document.createElement('p');
+      p.innerHTML = '<strong>Facilities:</strong>';
+      detailsContainer.appendChild(p);
+
+      const ul = document.createElement('ul');
+      station.facilities.forEach(facility => {
+        const li = document.createElement('li');
+        li.textContent = facility;
+        ul.appendChild(li);
+      });
+      detailsContainer.appendChild(ul);
+    }
+
+  } catch (error) {
+    console.error('Error:', error);
+    detailsContainer.textContent = '';
+    const errorMsg = document.createElement('p');
+    errorMsg.style.color = '#d9534f';
+    errorMsg.textContent = 'Could not load station details.';
+    detailsContainer.appendChild(errorMsg);
   }
+}
 
   function closeStationModal() {
     document.getElementById('stationModal').style.display = 'none';

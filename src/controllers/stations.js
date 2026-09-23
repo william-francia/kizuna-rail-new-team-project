@@ -20,6 +20,9 @@ export async function getStationById(req, res) {
         
         res.status(200).json(station);
     } catch (error) {
+        if (error.name === "CastError") {
+      return res.status(404).json({ error: "Station not found" });
+    }
         res.status(500).json({ error: 'Failed to retrieve station details' });
     }
 }
