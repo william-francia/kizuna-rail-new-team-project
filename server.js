@@ -6,8 +6,7 @@ import routes from './src/routes/router.js';
 import pkg from './package.json' with { type: 'json' };
 import { fileURLToPath } from 'url';
 import connectDB from './src/models/db.js';
-import swaggerSpec from './src/config/swagger.js';
-
+import swaggerSpec from './src/swagger.js';
 
 /**
  * Declare Important Variables
@@ -16,7 +15,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = Path.dirname(__filename);
 const NODE_ENV = process.env.NODE_ENV?.toLowerCase() || 'production';
 const PORT = process.env.PORT || 3000;
-
 
 /**
  * Setup Express Server
@@ -62,7 +60,6 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 /**
  * Routes
  */
-
 app.use('/', routes);
 
 /**
