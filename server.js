@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import globalMiddleware from "./src/middleware/global.js";
 import Path from "path";
@@ -47,12 +48,6 @@ const swaggerSpec = swaggerJsdoc({
   apis: ["./src/routes/*.js"],
 });
 
-app.get("/test-api", (req, res) => {
-  res.json({
-    message: "API works",
-  });
-});
-
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use("/", routes);
@@ -63,7 +58,7 @@ app.use((req, res, next) => {
   next(err);
 });
 
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   const status = err.status || 500;
   const template = status === 404 ? "404" : "500";
 

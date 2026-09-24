@@ -31,6 +31,15 @@ const ticketClassSchema = new mongoose.Schema(
       type: [String],
       required: true,
       lowercase: true,
+      enum: [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
+      ],
     },
   },
   {

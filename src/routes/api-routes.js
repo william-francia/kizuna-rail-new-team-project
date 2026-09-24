@@ -12,6 +12,8 @@ const router = Router();
  *   get:
  *     summary: Get ticket classes
  *     description: Returns all ticket classes or filters them by day.
+ *     tags:
+ *       - Ticket Classes
  *     parameters:
  *       - in: query
  *         name: day
@@ -19,6 +21,14 @@ const router = Router();
  *         description: Day of the week used to filter available ticket classes.
  *         schema:
  *           type: string
+ *           enum:
+ *             - monday
+ *             - tuesday
+ *             - wednesday
+ *             - thursday
+ *             - friday
+ *             - saturday
+ *             - sunday
  *           example: monday
  *     responses:
  *       200:
@@ -58,6 +68,8 @@ const router = Router();
  *                       - monday
  *                       - tuesday
  *                       - wednesday
+ *       400:
+ *         description: Invalid day.
  *       500:
  *         description: Server error.
  */

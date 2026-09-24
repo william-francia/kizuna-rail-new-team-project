@@ -569,6 +569,13 @@
 
     dayInputs.forEach((input) => {
         input.addEventListener('change', () => {
+            selectedDayLabels.forEach((label) => {
+                label.classList.toggle(
+                    'selected',
+                    label.querySelector('input') === input
+                );
+            });
+
             updateTicketAvailability(input.value);
         });
     });
