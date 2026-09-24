@@ -1,8 +1,8 @@
 import {
   getTripById as findTripById,
   getAllTrips as findAllTrips,
-  getSchedulesByRoute as findSchedulesByRoute,
 } from "../models/trips.js";
+
 // API: GET /api/trips/:id
 export async function getTripById(req, res) {
   try {
@@ -60,8 +60,6 @@ export async function renderTripDetailsPage(req, res) {
       });
     }
 
-    details.schedules = await findSchedulesByRoute(routeId);
-
     return res.render("routes/details", {
       title: "Route Details",
       details,
@@ -72,7 +70,7 @@ export async function renderTripDetailsPage(req, res) {
     return res.status(500).render("errors/500", {
       title: "Server Error",
       error: "Unable to load trip details.",
-        stack: error.stack,
+      stack: error.stack,
     });
   }
 }

@@ -55,7 +55,11 @@ app.use(globalMiddleware);
 /**
  * Routes
  */
+
+// Swagger API documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// Application routes
 app.use('/', routes);
 
 /**
