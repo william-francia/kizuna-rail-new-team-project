@@ -1,5 +1,9 @@
 import mongoose from "mongoose";
+<<<<<<< HEAD
+import { generateConfirmationCode } from "../../includes/helpers.js";
+=======
 import { generateBookingCode } from "../../includes/helpers.js";
+>>>>>>> origin/main
 
 const passengerSchema = new mongoose.Schema(
   {
@@ -26,7 +30,11 @@ const passengerSchema = new mongoose.Schema(
   },
   {
     _id: false,
+<<<<<<< HEAD
+  },
+=======
   }
+>>>>>>> origin/main
 );
 
 const bookingSchema = new mongoose.Schema(
@@ -36,7 +44,11 @@ const bookingSchema = new mongoose.Schema(
       required: true,
       unique: true,
       trim: true,
+<<<<<<< HEAD
+      default: generateConfirmationCode,
+=======
       default: generateBookingCode,
+>>>>>>> origin/main
     },
     scheduleId: {
       type: String,
@@ -69,9 +81,17 @@ const bookingSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+<<<<<<< HEAD
+  },
+=======
   }
+>>>>>>> origin/main
 );
 
 const Booking = mongoose.model("Booking", bookingSchema);
 
+<<<<<<< HEAD
 export default Booking;
+=======
+export default Booking;
+>>>>>>> origin/main

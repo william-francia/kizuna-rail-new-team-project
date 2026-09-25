@@ -1,4 +1,8 @@
 import { Router } from "express";
+import {
+  getAllTicketClasses,
+  getTicketClassesForDay,
+} from "../controllers/ticket-classes.js";
 import { getAllBookings } from "../controllers/bookings.js";
 import { getAllTrips, getTripById } from "../controllers/trips.js";
 import {
@@ -57,7 +61,7 @@ const router = Router();
  *     tags: [Bookings]
  *     responses:
  *       200:
- *         description: A list of bookings, newest first (an empty array if there are none).
+ *         description: A list of bookings, newest first.
  *         content:
  *           application/json:
  *             schema:
@@ -66,16 +70,52 @@ const router = Router();
  *                 $ref: '#/components/schemas/Booking'
  *       500:
  *         description: Failed to fetch bookings.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: Failed to fetch bookings
  */
 router.get("/bookings", getAllBookings);
+
+/**
+ * @swagger
+ * /api/ticket-classes:
+ *   get:
+ *     summary: Get ticket classes
+ *     description: Returns all ticket classes or filters them by day.
+ *     tags:
+ *       - Ticket Classes
+ *     parameters:
+ *       - in: query
+ *         name: day
+ *         required: false
+ *         description: Day of the week used to filter available ticket classes.
+ *         schema:
+ *           type: string
+ *           enum:
+ *             - monday
+ *             - tuesday
+ *             - wednesday
+ *             - thursday
+ *             - friday
+ *             - saturday
+ *             - sunday
+ *           example: monday
+ *     responses:
+ *       200:
+ *         description: Ticket classes retrieved successfully.
+ *       400:
+ *         description: Invalid day.
+ *       500:
+ *         description: Server error.
+ */
+router.get("/ticket-classes", async (req, res, next) => {
+  try {
+    if (req.query.day) {
+      return await getTicketClassesForDay(req, res);
+    }
+
+    return await getAllTicketClasses(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
 /**
  * @swagger
@@ -115,10 +155,6 @@ router.get("/trips", getAllTrips);
  *     responses:
  *       200:
  *         description: The requested trip
- *         content:
- *           application/json:
- *             schema:
- *               type: object
  *       404:
  *         description: Trip not found
  *       500:
@@ -131,7 +167,7 @@ router.get("/trips/:id", getTripById);
  * /api/trips/{id}/schedules:
  *   get:
  *     summary: Get schedules for a trip
- *     description: Returns the schedules for a specific trip. An optional month query parameter can be used to get schedules for a specific month.
+ *     description: Returns schedules for a specific trip. An optional month query parameter can filter the results.
  *     parameters:
  *       - in: path
  *         name: id
@@ -158,11 +194,11 @@ router.get("/trips/:id", getTripById);
  *         description: Server error
  */
 router.get("/trips/:id/schedules", (req, res, next) => {
-    if (req.query.month !== undefined) {
-        return getSchedulesForTripAndMonth(req, res, next);
-    }
+  if (req.query.month !== undefined) {
+    return getSchedulesForTripAndMonth(req, res, next);
+  }
 
-    return getSchedulesForTrip(req, res, next);
+  return getSchedulesForTrip(req, res, next);
 });
 
 export default router;

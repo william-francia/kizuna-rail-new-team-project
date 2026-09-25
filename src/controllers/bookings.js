@@ -1,4 +1,6 @@
-import { getScheduleById, getTicketOptionsForRoute } from "../models/model.js";
+import { getScheduleById } from "../models/model.js";
+import { getAllTicketClasses } from "../models/ticket-classes.js";
+
 import {
   createBooking as saveBooking,
   getAllBookings as findAllBookings,
@@ -8,9 +10,9 @@ import {
 // EJS controllers
 
 export async function bookingPage(req, res, next) {
-  const { scheduleId } = req.params;
-
   try {
+    const { scheduleId } = req.params;
+
     const schedule = await getScheduleById(scheduleId);
 
     if (!schedule) {
@@ -19,22 +21,24 @@ export async function bookingPage(req, res, next) {
       return next(err);
     }
 
-    const ticketOptions = await getTicketOptionsForRoute(
-      schedule.routeId,
-      scheduleId
-    );
+    const ticketClasses = await getAllTicketClasses();
 
-    res.render("routes/book", {
+    const ticketOptions = ticketClasses.map((ticketClass) => ({
+      class: ticketClass.class,
+      name: ticketClass.name,
+      price: ticketClass.pricePerKm,
+      amenities: ticketClass.amenities,
+      description: ticketClass.description,
+    }));
+
+    return res.render("bookings/booking", {
       title: "Book Trip",
       schedule,
       ticketOptions,
     });
   } catch (error) {
     console.error("Error loading booking page:", error);
-
-    const err = new Error("Schedule not found");
-    err.status = 404;
-    return next(err);
+    return next(error);
   }
 }
 
@@ -42,7 +46,7 @@ export async function processBookingRequest(req, res, next) {
   try {
     const booking = await saveBooking(req.body);
 
-    return res.redirect(`/routes/bookings/${booking.id}`);
+    return res.redirect(`/routes/confirmation/${booking.id}`);
   } catch (error) {
     if (error.name === "ValidationError") {
       return res
@@ -58,11 +62,11 @@ export async function processBookingRequest(req, res, next) {
 
 export async function bookingConfirmationPage(req, res, next) {
   try {
-    const { bookingId } = req.params;
+    const { confirmationId } = req.params;
 
-    const booking = await findBookingById(bookingId);
+    const confirmation = await findBookingById(confirmationId);
 
-    if (!booking) {
+    if (!confirmation) {
       const err = new Error("Booking not found");
       err.status = 404;
       return next(err);
@@ -70,7 +74,7 @@ export async function bookingConfirmationPage(req, res, next) {
 
     return res.render("routes/confirm", {
       title: "Trip Confirmation",
-      booking,
+      confirmation,
     });
   } catch (error) {
     console.error("Error fetching booking:", error);
