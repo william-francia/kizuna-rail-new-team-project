@@ -26,7 +26,7 @@ const passengerSchema = new mongoose.Schema(
   },
   {
     _id: false,
-  }
+  },
 );
 
 const bookingSchema = new mongoose.Schema(
@@ -69,7 +69,7 @@ const bookingSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const Booking = mongoose.model("Booking", bookingSchema);
