@@ -1,7 +1,7 @@
-import challengeScenariosRouter from './scenarios.js';
-import ejsRoutesRouter from './ejs-routes.js';
-import apiRoutesRouter from './api-routes.js';
 import { Router } from 'express';
+import challengeScenariosRouter from './scenarios.js';
+import apiRoutes from './api-routes.js';
+import ejsRoutes from './ejs-routes.js';
 import { homePage, aboutPage, testErrorPage } from './index.js';
 
 const router = Router();
@@ -12,11 +12,11 @@ router.get('/', homePage);
 // About page
 router.get('/about', aboutPage);
 
-// API routes
-router.use('/api', apiRoutesRouter);
+// JSON API routes
+router.use('/api', apiRoutes);
 
-// Rail routes
-router.use('/routes', ejsRoutesRouter);
+// EJS page routes (trips, booking pages, bookings admin)
+router.use('/', ejsRoutes);
 
 // Challenge scenarios
 router.use('/scenarios', challengeScenariosRouter);

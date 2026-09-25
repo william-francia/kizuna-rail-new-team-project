@@ -1,23 +1,28 @@
-import swaggerJSDoc from 'swagger-jsdoc';
+import swaggerJSDoc from "swagger-jsdoc";
+import pkg from "./package.json" with { type: "json" };
 
-const swaggerOptions = {
-    definition: {
-        openapi: '3.0.0',
-        info: {
-            title: 'Kizuna Rail API',
-            version: '1.0.0',
-            description: 'API documentation for the Kizuna Rail project'
-        },
-        servers: [
-            {
-                url: 'http://localhost:3000'
-            }
-        ]
+// Builds the OpenAPI document from the @swagger comments in the routes files.
+const options = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "Kizuna Rail API",
+      version: pkg.version,
+      description: "JSON API for the Kizuna Rail booking application.",
     },
-
-    apis: ['./src/routes/*.js']
+    servers: [
+      {
+        url: "http://localhost:3000",
+      },
+    ],
+    tags: [
+      {
+        name: "Bookings",
+        description: "Ticket bookings made through the booking form.",
+      },
+    ],
+  },
+  apis: ["./src/routes/*.js"],
 };
 
-const swaggerSpec = swaggerJSDoc(swaggerOptions);
-
-export default swaggerSpec;
+export default swaggerJSDoc(options);

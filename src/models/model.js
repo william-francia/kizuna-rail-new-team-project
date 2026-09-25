@@ -1,11 +1,8 @@
-import { generateConfirmationCode } from '../includes/helpers.js';
-
 import Route from './schemas/route.js';
 import Station from './schemas/station.js';
 import Schedule from './schemas/schedules.js';
 import TicketClass from './schemas/ticket-class.js';
 import Train from './schemas/train.js';
-import Confirmation from './schemas/confirmation.js';
 
 // ROUTE MODEL FUNCTIONS
 
@@ -240,25 +237,4 @@ export const searchRoutes = async (keyword) => {
             { highlights: { $regex: searchTerm, $options: 'i' } }
         ]
     });
-};
-
-// CONFIRMATION MODEL FUNCTIONS
-
-export const createConfirmation = async (confirmationData) => {
-    const newConfirmation = {
-        id: generateConfirmationCode(),
-        ...confirmationData
-    };
-
-    const confirmation = await Confirmation.create(newConfirmation);
-
-    return confirmation.id;
-};
-
-export const getConfirmationById = async (confirmationId) => {
-    return await Confirmation.findOne({ id: confirmationId });
-};
-
-export const getAllConfirmations = async () => {
-    return await Confirmation.find();
 };

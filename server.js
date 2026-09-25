@@ -1,13 +1,12 @@
 import express from 'express';
+import swaggerUi from 'swagger-ui-express';
 import globalMiddleware from './src/middleware/global.js';
 import Path from 'path';
 import routes from './src/routes/router.js';
 import pkg from './package.json' with { type: 'json' };
 import { fileURLToPath } from 'url';
 import connectDB from './src/models/db.js';
-import swaggerUi from 'swagger-ui-express';
-import swaggerSpec from './src/swagger.js';
-
+import swaggerSpec from './swagger.js';
 
 /**
  * Declare Important Variables
@@ -16,7 +15,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = Path.dirname(__filename);
 const NODE_ENV = process.env.NODE_ENV?.toLowerCase() || 'production';
 const PORT = process.env.PORT || 3000;
-
 
 /**
  * Setup Express Server
@@ -53,13 +51,15 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(globalMiddleware);
 
 /**
- * Routes
+ * API Documentation
  */
 
-// Swagger API documentation
+// Swagger UI for the JSON API
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// Application routes
+/**
+ * Routes
+ */
 app.use('/', routes);
 
 /**
