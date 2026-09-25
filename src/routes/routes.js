@@ -1,22 +1,21 @@
-import { bookingPage, processBookingRequest } from "../controllers/bookings.js";
-import confirmationPage from "./confirm.js";
+import {
+  bookingPage,
+  processBookingRequest,
+  bookingConfirmationPage,
+} from "../controllers/bookings.js";
 import listRoutesPage from "./list.js";
 import routeDetailsPage from "./details.js";
 import { Router } from "express";
 
 const router = Router();
 
-// List all routes
 router.get("/", listRoutesPage);
 
-// Route details page
 router.get("/:routeId", routeDetailsPage);
 
-// Book ticket
 router.get("/booking/:scheduleId", bookingPage);
 router.post("/book", processBookingRequest);
 
-// Booking confirmation page
-router.get("/confirmation/:confirmationId", confirmationPage);
+router.get("/confirmation/:confirmationId", bookingConfirmationPage);
 
 export default router;

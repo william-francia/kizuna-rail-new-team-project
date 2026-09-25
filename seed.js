@@ -3,7 +3,7 @@ import connectDB from "./src/models/db.js";
 import Route from "./src/models/schemas/route.js";
 import Station from "./src/models/schemas/station.js";
 import Schedule from "./src/models/schemas/schedule.js";
-import TicketClass from "./src/models/schemas/ticket-classe.js";
+import TicketClass from "./src/models/schemas/ticket-classes.js";
 import Train from "./src/models/schemas/train.js";
 
 import routes from "./src/models/seeds/routes.json" with { type: "json" };
