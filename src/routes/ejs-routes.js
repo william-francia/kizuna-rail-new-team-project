@@ -19,7 +19,7 @@ router.get("/routes/:routeId", renderTripDetailsPage);
 // Booking pages
 router.get("/routes/booking/:scheduleId", bookingPage);
 router.post("/routes/book", processBookingRequest);
-router.get("/routes/confirmation/:confirmationId", bookingConfirmationPage);
+router.get("/routes/bookings/:bookingId", bookingConfirmationPage);
 
 // Bookings admin page
 router.get("/bookings-admin", bookingsAdminPage);

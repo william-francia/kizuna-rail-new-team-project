@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { generateConfirmationCode } from "../../includes/helpers.js";
+import { generateBookingCode } from "../../includes/helpers.js";
 
 const passengerSchema = new mongoose.Schema(
   {
@@ -36,7 +36,7 @@ const bookingSchema = new mongoose.Schema(
       required: true,
       unique: true,
       trim: true,
-      default: generateConfirmationCode,
+      default: generateBookingCode,
     },
     scheduleId: {
       type: String,

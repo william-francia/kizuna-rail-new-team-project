@@ -7,10 +7,16 @@ import {
 
 // EJS controllers
 
-export async function bookingPage(req, res) {
+export async function bookingPage(req, res, next) {
   const { scheduleId } = req.params;
 
   const schedule = await getScheduleById(scheduleId);
+
+  if (!schedule) {
+    const err = new Error("Schedule not found");
+    err.status = 404;
+    return next(err);
+  }
 
   const ticketOptions = await getTicketOptionsForRoute(
     schedule.routeId,
@@ -28,7 +34,7 @@ export async function processBookingRequest(req, res, next) {
   try {
     const booking = await saveBooking(req.body);
 
-    return res.redirect(`/routes/confirmation/${booking.id}`);
+    return res.redirect(`/routes/bookings/${booking.id}`);
   } catch (error) {
     if (error.name === "ValidationError") {
       return res
@@ -44,11 +50,11 @@ export async function processBookingRequest(req, res, next) {
 
 export async function bookingConfirmationPage(req, res, next) {
   try {
-    const { confirmationId } = req.params;
+    const { bookingId } = req.params;
 
-    const confirmation = await findBookingById(confirmationId);
+    const booking = await findBookingById(bookingId);
 
-    if (!confirmation) {
+    if (!booking) {
       const err = new Error("Booking not found");
       err.status = 404;
       return next(err);
@@ -56,7 +62,7 @@ export async function bookingConfirmationPage(req, res, next) {
 
     return res.render("routes/confirm", {
       title: "Trip Confirmation",
-      confirmation,
+      booking,
     });
   } catch (error) {
     console.error("Error fetching booking:", error);
