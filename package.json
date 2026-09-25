@@ -9,7 +9,7 @@
     "swagger-ui-express": "^5.0.1"
   },
   "scripts": {
-    "dev": "nodemon server.js",
+    "dev": "nodemon --env-file=.env server.js",
     "reset": "node restore.js 3000 3001",
     "start": "node server.js",
     "lint": "eslint .",
