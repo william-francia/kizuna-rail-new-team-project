@@ -1,7 +1,7 @@
 import Route from './schemas/route.js';
 import Station from './schemas/station.js';
 import Schedule from './schemas/schedules.js';
-import TicketClass from './schemas/ticket-class.js';
+import TicketClass from './schemas/ticket-classes.js';
 import Train from './schemas/train.js';
 
 // ROUTE MODEL FUNCTIONS
