@@ -6,7 +6,7 @@ import routes from './src/routes/router.js';
 import pkg from './package.json' with { type: 'json' };
 import { fileURLToPath } from 'url';
 import connectDB from './src/models/db.js';
-import swaggerSpec from './src/swagger.js';
+import swaggerSpec from './swagger.js';
 
 /**
  * Declare Important Variables

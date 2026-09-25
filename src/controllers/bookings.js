@@ -10,24 +10,32 @@ import {
 export async function bookingPage(req, res, next) {
   const { scheduleId } = req.params;
 
-  const schedule = await getScheduleById(scheduleId);
+  try {
+    const schedule = await getScheduleById(scheduleId);
 
-  if (!schedule) {
+    if (!schedule) {
+      const err = new Error("Schedule not found");
+      err.status = 404;
+      return next(err);
+    }
+
+    const ticketOptions = await getTicketOptionsForRoute(
+      schedule.routeId,
+      scheduleId
+    );
+
+    res.render("routes/book", {
+      title: "Book Trip",
+      schedule,
+      ticketOptions,
+    });
+  } catch (error) {
+    console.error("Error loading booking page:", error);
+
     const err = new Error("Schedule not found");
     err.status = 404;
     return next(err);
   }
-
-  const ticketOptions = await getTicketOptionsForRoute(
-    schedule.routeId,
-    scheduleId
-  );
-
-  res.render("routes/book", {
-    title: "Book Trip",
-    schedule,
-    ticketOptions,
-  });
 }
 
 export async function processBookingRequest(req, res, next) {
