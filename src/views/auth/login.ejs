@@ -1,0 +1,27 @@
+<%- include('../partials/header') %>
+
+<section class="auth-page">
+    <h1>Log In</h1>
+
+    <% if (error) { %>
+        <p role="alert"><%= error %></p>
+    <% } %>
+
+    <form method="POST" action="/login">
+        <div>
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" value="<%= values.email || '' %>" required>
+        </div>
+
+        <div>
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" required>
+        </div>
+
+        <button type="submit">Log In</button>
+    </form>
+
+    <p>Need an account? <a href="/register">Register</a>.</p>
+</section>
+
+<%- include('../partials/footer') %>

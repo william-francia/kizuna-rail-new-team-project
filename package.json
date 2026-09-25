@@ -1,9 +1,11 @@
 {
   "name": "kizuna-rail-byui-demo",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "dotenv": "^18.0.1",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
+    "express-session": "^1.19.0",
     "mongoose": "^9.10.1",
     "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1"
@@ -13,7 +15,8 @@
     "reset": "node restore.js 3000 3001",
     "start": "node server.js",
     "lint": "eslint .",
-    "seed": "node --env-file=.env seed.js"
+    "seed": "node --env-file=.env seed.js",
+    "seed:roles": "node --env-file=.env scripts/seed-auth-roles.js"
   },
   "type": "module",
   "version": "1.0.0",
