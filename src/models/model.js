@@ -10,7 +10,6 @@ export const getAllRoutes = async () => {
     return await Route.find();
 };
 
-<<<<<<< HEAD
 export const getListOfRegions = async (routes = []) => {
   if (!Array.isArray(routes)) return [];
   const regions = await Route.distinct('region');
