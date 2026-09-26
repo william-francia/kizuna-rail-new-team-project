@@ -13,16 +13,13 @@ export async function getStationById(req, res) {
     try {
         const { id } = req.params;
         const station = await stationModel.getStationById(id);
-        
+
         if (!station) {
             return res.status(404).json({ error: 'Station not found' });
         }
-        
+
         res.status(200).json(station);
     } catch (error) {
-        if (error.name === "CastError") {
-      return res.status(404).json({ error: "Station not found" });
-    }
         res.status(500).json({ error: 'Failed to retrieve station details' });
     }
 }

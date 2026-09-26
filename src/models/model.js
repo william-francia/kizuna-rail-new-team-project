@@ -7,18 +7,21 @@ export const getAllRoutes = async () => {
     return db().routes;
 };
 
-export const getListOfRegions = async () => {
-    const regions = new Set(db().routes.map(route => route.region));
-    return Array.from(regions);
+export const getListOfRegions = (routes = []) => {
+    if (!Array.isArray(routes)) return [];
+    const regions = routes.map(route => route?.region).filter(Boolean);
+    return [...new Set(regions)];
 };
 
-export const getListOfSeasons = async () => {
-    const seasons = new Set(db().routes.map(route => route.bestSeason));
-    return Array.from(seasons);
+export const getListOfSeasons = (routes = []) => {
+    if (!Array.isArray(routes)) return [];
+    const seasons = routes.map(route => route?.bestSeason || route?.season).filter(Boolean);
+    return [...new Set(seasons)];
 };
 
-export const getRouteById = async (routeId) => {
-    return db().routes.find(route => route.id == routeId) || null;
+export const getRouteById = (routes = [], id) => {
+    if (!Array.isArray(routes)) return null;
+    return routes.find(route => route.id === id);
 };
 
 export const getRoutesByRegion = async (region) => {

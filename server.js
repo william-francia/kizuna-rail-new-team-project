@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import globalMiddleware from './src/middleware/global.js';
 import Path from 'path';
@@ -7,8 +8,11 @@ import { fileURLToPath } from 'url';
 import connectDB from './src/models/db.js';
 import dns from 'dns';
 dns.setDefaultResultOrder('ipv4first');
-dns.setServers(['8.8.8.8', '8.8.4.4']);
 
+if (process.env.DNS_SERVERS) {
+    const servers = process.env.DNS_SERVERS.split(',').map(s => s.trim());
+    dns.setServers(servers);
+}
 /**
  * Declare Important Variables
  */

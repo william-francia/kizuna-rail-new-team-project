@@ -1,14 +1,24 @@
-import { getRouteById, getSchedulesByRoute } from '../models/model.js';
+import { getAllRoutes, getRouteById } from '../models/model.js';
 
-export default async (req, res) => {
-    const { routeId } = req.params;
-    const details = await getRouteById(routeId);
-    details.schedules = await getSchedulesByRoute(routeId);
+export default async function routeDetails(req, res, next) {
+    try {
+        const { id } = req.params;
 
-    // TODO: getCompleteRouteDetails instead
+        const routes = (await getAllRoutes()) || [];
 
-    res.render('routes/details', { 
-        title: 'Route Details',
-        details
-    });
-};
+        const details = getRouteById(routes, id);
+
+        if (!details) {
+            const err = new Error('Route Not Found');
+            err.status = 404;
+            return next(err);
+        }
+
+        res.render('routes/details', {
+            title: details.name,
+            details
+        });
+    } catch (error) {
+        next(error);
+    }
+}
