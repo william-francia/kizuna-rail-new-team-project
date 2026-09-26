@@ -6,9 +6,21 @@ import Train from './schemas/train.js';
 
 // ROUTE MODEL FUNCTIONS
 
+
 export const getAllRoutes = async () => {
-    return await Route.find();
+  return await Route.find().lean();
 };
+
+export const getRouteById = async (id) => {
+  return await Route.findOne({ id }).lean();
+};
+
+export const getRoutesByRegion = async (region) => {
+  return await Route.find({
+    region: { $regex: `^${region}$`, $options: 'i' }
+  }).lean();
+};
+
 
 export const getListOfRegions = async (routes = []) => {
   if (!Array.isArray(routes)) return [];
@@ -22,15 +34,8 @@ export const getListOfSeasons = async (routes = []) => {
   return seasons;
 };
 
-export const getRouteById = async (id) => {
-  return await Route.findOne({ id });
-};
 
-export const getRoutesByRegion = async (region) => {
-    return await Route.find({
-        region: { $regex: `^${region}$`, $options: 'i' }
-    });
-};
+
 
 export const getRoutesBySeason = async (season) => {
     return await Route.find({
@@ -61,11 +66,11 @@ export const getRoutesByDistance = async () => {
 // STATION MODEL FUNCTIONS
 
 export const getAllStations = async () => {
-    return await Station.find();
+  return await Station.find({}).lean();
 };
 
-export const getStationById = async (stationId) => {
-    return await Station.findOne({ id: stationId });
+export const getStationById = async (id) => {
+  return await Station.findOne({ id }).lean();
 };
 
 export const getStationsByRegion = async (region) => {

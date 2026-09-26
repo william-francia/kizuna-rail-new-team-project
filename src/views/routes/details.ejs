@@ -48,13 +48,17 @@
     <div class="stations">
         <div class="station">
             <span class="station-label">Start</span>
-            <span class="station-name"><%= details.startStation.charAt(0).toUpperCase() + details.startStation.slice(1) %></span>
-            <button type="button" class="station-info-btn" title="View Station Info" data-station-id="<%= details.startStationId || details.startStation %>">ℹ️</button>
+            <span class="station-name"><%= details.startStation ? (details.startStation.charAt(0).toUpperCase() + details.startStation.slice(1)) : 'N/A' %></span>
+            <% if (details.startStationId) { %>
+                <button type="button" class="station-info-btn" title="View Station Info" data-station-id="<%= details.startStationId %>">ℹ️</button>
+            <% } %>
         </div>
         <div class="station">
             <span class="station-label">End</span>
-            <span class="station-name"><%= details.endStation.charAt(0).toUpperCase() + details.endStation.slice(1) %></span>
-            <button type="button" class="station-info-btn" title="View Station Info" data-station-id="<%= details.endStationId || details.endStation %>">ℹ️</button>
+            <span class="station-name"><%= details.endStation ? (details.endStation.charAt(0).toUpperCase() + details.endStation.slice(1)) : 'N/A' %></span>
+            <% if (details.endStationId) { %>
+                <button type="button" class="station-info-btn" title="View Station Info" data-station-id="<%= details.endStationId %>">ℹ️</button>
+            <% } %>
         </div>
     </div>
 </div>

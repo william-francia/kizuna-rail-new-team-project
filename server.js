@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import "dotenv/config";
 import express from "express";
 import globalMiddleware from "./src/middleware/global.js";
@@ -16,7 +15,6 @@ if (process.env.DNS_SERVERS) {
     dns.setServers(servers);
 }
 
->>>>>>> origin/main
 /**
  * Declare Important Variables
  */
