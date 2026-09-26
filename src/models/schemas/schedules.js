@@ -7,25 +7,30 @@ const scheduleSchema = new mongoose.Schema(
             required: true,
             unique: true
         },
+
         routeId: {
             type: String,
             required: true,
             trim: true
         },
+
         departureTime: {
             type: String,
             required: true,
             trim: true
         },
+
         arrivalTime: {
             type: String,
             required: true,
             trim: true
         },
+
         daysOfWeek: {
             type: [String],
             required: true
         },
+
         status: {
             type: Boolean,
             required: true
