@@ -1,0 +1,127 @@
+<%- include("partials/header") %>
+
+<main class="container">
+  <h1>My Profile</h1>
+
+  <% if (success) { %>
+    <p><%= success %></p>
+  <% } %>
+
+  <% if (error) { %>
+    <p><%= error %></p>
+  <% } %>
+
+  <section>
+    <h2>Profile Information</h2>
+
+    <p>
+      <strong>Last Login:</strong>
+      <% if (user.lastLogin) { %>
+        <%= user.lastLogin.toLocaleString() %>
+      <% } else { %>
+        This is your first login.
+      <% } %>
+    </p>
+
+    <form action="/profile" method="POST">
+      <div>
+        <label for="displayName">Display Name</label>
+        <input
+          type="text"
+          id="displayName"
+          name="displayName"
+          value="<%= user.displayName %>"
+          required
+        >
+      </div>
+
+      <div>
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          value="<%= user.email %>"
+          required
+        >
+      </div>
+
+      <div>
+        <label for="bio">Bio</label>
+        <textarea
+          id="bio"
+          name="bio"
+          rows="4"
+        ><%= user.bio || "" %></textarea>
+      </div>
+
+      <div>
+        <label for="avatarUrl">Avatar URL</label>
+        <input
+          type="url"
+          id="avatarUrl"
+          name="avatarUrl"
+          value="<%= user.avatarUrl || "" %>"
+          placeholder="https://example.com/avatar.jpg"
+        >
+      </div>
+
+      <button type="submit">Save Profile</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Change Password</h2>
+
+    <form action="/profile/password" method="POST">
+      <div>
+        <label for="currentPassword">Current Password</label>
+        <input
+          type="password"
+          id="currentPassword"
+          name="currentPassword"
+          required
+        >
+      </div>
+
+      <div>
+        <label for="newPassword">New Password</label>
+        <input
+          type="password"
+          id="newPassword"
+          name="newPassword"
+          minlength="8"
+          required
+        >
+      </div>
+
+      <div>
+        <label for="confirmPassword">Confirm New Password</label>
+        <input
+          type="password"
+          id="confirmPassword"
+          name="confirmPassword"
+          minlength="8"
+          required
+        >
+      </div>
+
+      <button type="submit">Change Password</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Account Security</h2>
+
+    <p>
+      Deactivating your account will sign you out and prevent the account
+      from being used until it is reactivated by an administrator.
+    </p>
+
+    <form action="/profile/deactivate" method="POST">
+      <button type="submit">Deactivate Account</button>
+    </form>
+  </section>
+</main>
+
+<%- include("partials/footer") %>

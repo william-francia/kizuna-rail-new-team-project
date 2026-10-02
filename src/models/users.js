@@ -24,6 +24,61 @@ export async function findUserByEmail(email) {
   return User.findOne({ email: email.trim().toLowerCase() }).populate("role");
 }
 
+export async function findUserById(userId) {
+  return User.findById(userId).populate("role");
+}
+
+export async function updateUserProfile(userId, profileData) {
+  return User.findByIdAndUpdate(
+    userId,
+    {
+      displayName: profileData.displayName.trim(),
+      email: profileData.email.trim().toLowerCase(),
+      bio: profileData.bio?.trim() || "",
+      avatarUrl: profileData.avatarUrl?.trim() || "",
+    },
+    { new: true, runValidators: true },
+  ).populate("role");
+}
+
+export async function changeUserPassword(userId, currentPassword, newPassword) {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    return { success: false, reason: "not-found" };
+  }
+
+  const passwordMatches = await bcrypt.compare(
+    currentPassword,
+    user.passwordHash,
+  );
+
+  if (!passwordMatches) {
+    return { success: false, reason: "invalid-password" };
+  }
+
+  user.passwordHash = await bcrypt.hash(newPassword, 12);
+  await user.save();
+
+  return { success: true };
+}
+
+export async function deactivateUser(userId) {
+  return User.findByIdAndUpdate(
+    userId,
+    { isActive: false },
+    { new: true },
+  );
+}
+
+export async function recordUserLogin(userId) {
+  return User.findByIdAndUpdate(
+    userId,
+    { lastLogin: new Date() },
+    { new: true },
+  );
+}
+
 export async function getAllUsers() {
   return User.find()
     .populate("role")
@@ -78,11 +133,4 @@ export async function deleteUser(userId) {
 
 export async function verifyPassword(password, passwordHash) {
   return bcrypt.compare(password, passwordHash);
-}
-
-export async function getAllUsers() {
-  return User.find()
-    .populate("role")
-    .select("displayName username email role")
-    .sort({ displayName: 1 });
 }

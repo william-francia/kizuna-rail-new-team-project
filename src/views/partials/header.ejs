@@ -1,70 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
+<header>
+    <div class="header-container">
+        <a href="/" class="logo">Kizuna Rail</a>
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-        <%= title %>
-    </title>
-    <link rel="stylesheet" href="/css/main.css" />
-    <script src="/js/main.js"></script>
+        <nav>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/routes">Routes</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/scenarios">Scenarios</a></li>
 
-    <% if (NODE_ENV.includes('dev')) { %>
-        <script>
-            const host = window.location.hostname;
-            const currentPort = window.location.port;
-            const wsPort = currentPort ? parseInt(currentPort) + 1 : 3001;
-            const ws = new WebSocket(`ws://${host}:${wsPort}`);
+                <% if (user) { %>
+                    <li><a href="/profile">My Profile</a></li>
+                <% } %>
 
-            ws.onclose = () => {
-                setTimeout(() => location.reload(), 2000);
-            };
-        </script>
-        <% } %>
-</head>
+                <li><a href="/404">404</a></li>
+                <li><a href="/500">500</a></li>
 
-<body>
-    <header class="content-grid">
-        <div class="content">
-            <div class="logo">
-                <a href="/"><img src="/images/logo-with-text.png" alt="Kizuna Rail Logo" /></a>
-            </div>
+                <% if (!user) { %>
+                    <li><a href="/register">Register</a></li>
+                    <li><a href="/login">Login</a></li>
+                <% } else { %>
+                    <li>
+                        <a href="<%= user.role === 'admin' ? '/admin' : '/user/dashboard' %>">
+                            Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <form action="/logout" method="POST">
+                            <button type="submit">Logout</button>
+                        </form>
+                    </li>
+                <% } %>
+            </ul>
+        </nav>
+    </div>
+</header>
 
-            <nav>
-                <input id="mobile-menu-toggle" type="checkbox" />
-
-                <label for="mobile-menu-toggle">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </label>
-
-                <ul>
-                    <li><a href="/routes">Routes</a></li>
-                    <li><a href="/about">About</a></li>
-                    <li><a href="/scenarios">Scenarios</a></li>
-                    <li><a href="/404">404</a></li>
-                    <li><a href="/500">500</a></li>
-
-                    <% if (!user) { %>
-                        <li><a href="/register">Register</a></li>
-                        <li><a href="/login">Login</a></li>
-                        <% } else { %>
-                            <li>
-                                <a href="<%= user.role === 'admin' ? '/admin' : '/user/dashboard' %>">
-                                    Dashboard
-                                </a>
-                            </li>
-                            <li>
-                                <form action="/logout" method="POST">
-                                    <button type="submit">Logout</button>
-                                </form>
-                            </li>
-                            <% } %>
-                </ul>
-            </nav>
-        </div>
-    </header>
-
-    <main class="content-grid">
+<main class="content-grid">

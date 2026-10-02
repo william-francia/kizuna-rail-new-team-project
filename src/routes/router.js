@@ -2,6 +2,7 @@ import { Router } from 'express';
 import challengeScenariosRouter from './scenarios.js';
 import apiRoutes from './api-routes.js';
 import authRoutes from "./auth-routes.js";
+import profileRoutes from "./profile-routes.js";
 import ejsRoutes from './ejs-routes.js';
 import { homePage, aboutPage, testErrorPage } from './index.js';
 
@@ -15,6 +16,7 @@ router.get('/about', aboutPage);
 
 // Authentication pages
 router.use("/", authRoutes);
+router.use("/", profileRoutes);
 
 // EJS pages
 router.use('/', ejsRoutes);
