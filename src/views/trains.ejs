@@ -1,0 +1,210 @@
+<%- include('./partials/header') %>
+
+<h1><%- title %></h1>
+
+<div class="train-controls">
+  <div class="train-search">
+    <label for="train-search">Search trains:</label>
+    <input
+      type="search"
+      id="train-search"
+      placeholder="Search by name, operator, type..."
+    />
+  </div>
+
+  <div class="train-sort">
+    <label for="train-sort">Sort by:</label>
+    <select id="train-sort">
+      <option value="name-asc">Name A-Z</option>
+      <option value="name-desc">Name Z-A</option>
+      <option value="speed-desc">Speed: High to Low</option>
+      <option value="speed-asc">Speed: Low to High</option>
+      <option value="capacity-desc">Capacity: High to Low</option>
+      <option value="capacity-asc">Capacity: Low to High</option>
+    </select>
+  </div>
+</div>
+
+<p id="train-status" aria-live="polite">Loading trains...</p>
+
+<div class="routes-grid" id="trains-list"></div>
+
+<div class="train-pagination">
+  <button id="previous-page" type="button">Previous</button>
+  <span id="page-info"></span>
+  <button id="next-page" type="button">Next</button>
+</div>
+
+<template id="train-card-template">
+  <div class="route-card train-card">
+    <div class="route-header">
+      <h2 class="route-name train-name"></h2>
+      <span class="route-region train-type"></span>
+    </div>
+
+    <div class="train-image-wrapper">
+      <img class="train-image" alt="" />
+    </div>
+
+    <div class="route-details">
+      <div class="detail-item">
+        <span class="detail-label">Operator:</span>
+        <span class="train-operator"></span>
+      </div>
+
+      <div class="detail-item">
+        <span class="detail-label">Maximum Speed:</span>
+        <span> <span class="train-speed"></span> km/h </span>
+      </div>
+
+      <div class="detail-item">
+        <span class="detail-label">Capacity:</span>
+        <span class="train-capacity"></span>
+      </div>
+
+      <div class="detail-item">
+        <span class="detail-label">Power:</span>
+        <span class="train-power"></span>
+      </div>
+    </div>
+
+    <div class="route-description train-description"></div>
+
+    <div class="highlights">
+      <div class="highlights-list">
+        <span class="highlight-tag train-best-for"></span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+  const trainsList = document.querySelector("#trains-list");
+  const trainTemplate = document.querySelector("#train-card-template");
+  const trainStatus = document.querySelector("#train-status");
+
+  const searchInput = document.querySelector("#train-search");
+  const sortSelect = document.querySelector("#train-sort");
+
+  const previousButton = document.querySelector("#previous-page");
+  const nextButton = document.querySelector("#next-page");
+  const pageInfo = document.querySelector("#page-info");
+
+  let currentPage = 1;
+  const limit = 10;
+  let totalPages = 1;
+
+  async function loadTrains() {
+    trainStatus.textContent = "Loading trains...";
+
+    const params = new URLSearchParams({
+      page: currentPage,
+      limit,
+      search: searchInput.value.trim(),
+      sort: sortSelect.value,
+    });
+
+    try {
+      const response = await fetch(`/api/trains?${params.toString()}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Unable to load trains.");
+      }
+
+      renderTrains(data.trains);
+      updatePagination(data.metadata);
+    } catch (error) {
+      trainsList.replaceChildren();
+      pageInfo.textContent = "";
+      trainStatus.textContent =
+        "Unable to load trains. Please try again later.";
+
+      console.error(error);
+    }
+  }
+
+  function renderTrains(trains) {
+    const fragment = document.createDocumentFragment();
+
+    trains.forEach((train) => {
+      const trainCard = trainTemplate.content.cloneNode(true);
+
+      trainCard.querySelector(".train-name").textContent = train.name;
+      trainCard.querySelector(".train-type").textContent = train.type;
+      trainCard.querySelector(".train-operator").textContent = train.operator;
+      trainCard.querySelector(".train-speed").textContent = train.maxSpeedKmh;
+      trainCard.querySelector(".train-capacity").textContent = train.capacity;
+      trainCard.querySelector(".train-power").textContent = train.powerSource;
+      trainCard.querySelector(".train-description").textContent =
+        train.description || "";
+
+      const image = trainCard.querySelector(".train-image");
+
+      if (train.imageUrl) {
+        image.src = train.imageUrl;
+        image.alt = train.imageAlt || train.name;
+      } else {
+        image.remove();
+      }
+
+      const bestFor = trainCard.querySelector(".train-best-for");
+
+      if (train.bestFor) {
+        bestFor.textContent = `Best for: ${train.bestFor}`;
+      } else {
+        bestFor.remove();
+      }
+
+      fragment.append(trainCard);
+    });
+
+    trainsList.replaceChildren(fragment);
+
+    trainStatus.textContent = trains.length
+      ? ""
+      : "No trains match your search.";
+  }
+
+  function updatePagination(metadata) {
+    currentPage = metadata.page;
+    totalPages = metadata.totalPages;
+
+    if (totalPages === 0) {
+      pageInfo.textContent = "No pages";
+    } else {
+      pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+    }
+
+    previousButton.disabled = currentPage <= 1;
+    nextButton.disabled = totalPages === 0 || currentPage >= totalPages;
+  }
+
+  searchInput.addEventListener("input", () => {
+    currentPage = 1;
+    loadTrains();
+  });
+
+  sortSelect.addEventListener("change", () => {
+    currentPage = 1;
+    loadTrains();
+  });
+
+  previousButton.addEventListener("click", () => {
+    if (currentPage > 1) {
+      currentPage--;
+      loadTrains();
+    }
+  });
+
+  nextButton.addEventListener("click", () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      loadTrains();
+    }
+  });
+
+  loadTrains();
+</script>
+
+<%- include('./partials/footer') %>
