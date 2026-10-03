@@ -3,19 +3,29 @@ import {
   getAllTicketClasses,
   getTicketClassesForDay,
 } from "../controllers/ticket-classes.js";
-import { getAllTrips, getTripById, deleteTrip, updateTrip } from "../controllers/trips.js";
+import {
+  getAllTrips,
+  getTripById,
+  deleteTrip,
+  updateTrip,
+} from "../controllers/trips.js";
 import { getAllBookings, getMyBookings } from "../controllers/bookings.js";
 import {
   getSchedulesForTrip,
   getSchedulesForTripAndMonth,
 } from "../controllers/schedules.js";
-import { getAllStations, getStationById } from '../controllers/stations.js';
-import { requireAuth, requireAdmin, requireApiLogin } from '../middleware/auth.js';
+import { getAllStations, getStationById } from "../controllers/stations.js";
+import {
+  requireAuth,
+  requireAdmin,
+  requireApiLogin,
+} from "../middleware/auth.js";
 import {
   getUsers,
   updateUserById,
   deleteUserById,
 } from "../controllers/users.js";
+import { getAllTrains, getTrainById } from "../controllers/trains.js";
 
 const router = Router();
 
@@ -58,6 +68,45 @@ const router = Router();
  *         updatedAt:
  *           type: string
  *           format: date-time
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Train:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           example: "n700"
+ *         name:
+ *           type: string
+ *           example: "N700 Series"
+ *         operator:
+ *           type: string
+ *           example: "JR Central"
+ *         imageUrl:
+ *           type: string
+ *         imageAlt:
+ *           type: string
+ *         type:
+ *           type: string
+ *           example: "Shinkansen"
+ *         maxSpeedKmh:
+ *           type: number
+ *           example: 285
+ *         capacity:
+ *           type: number
+ *           example: 1323
+ *         powerSource:
+ *           type: string
+ *           example: "Electric"
+ *         bestFor:
+ *           type: string
+ *           example: "Long-distance travel"
+ *         description:
+ *           type: string
  */
 
 /**
@@ -124,6 +173,124 @@ router.get("/ticket-classes", async (req, res, next) => {
     next(error);
   }
 });
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Train:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           example: "n700"
+ *         name:
+ *           type: string
+ *           example: "N700 Series"
+ *         operator:
+ *           type: string
+ *           example: "JR Central"
+ *         imageUrl:
+ *           type: string
+ *         imageAlt:
+ *           type: string
+ *         type:
+ *           type: string
+ *           example: "Shinkansen"
+ *         maxSpeedKmh:
+ *           type: number
+ *           example: 285
+ *         capacity:
+ *           type: number
+ *           example: 1323
+ *         powerSource:
+ *           type: string
+ *           example: "Electric"
+ *         bestFor:
+ *           type: string
+ *           example: "Long-distance travel"
+ *         description:
+ *           type: string
+ */
+
+/**
+ * @swagger
+ * /api/trains:
+ *   get:
+ *     summary: Get all trains with pagination
+ *     tags:
+ *       - Trains
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         description: Page number
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         description: Number of trains per page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: Paginated list of trains
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 trains:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Train'
+ *                 metadata:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     total:
+ *                       type: integer
+ *                     totalPages:
+ *                       type: integer
+ *       400:
+ *         description: Invalid pagination parameters
+ *       500:
+ *         description: Failed to fetch trains
+ */
+router.get("/trains", getAllTrains);
+
+/**
+ * @swagger
+ * /api/trains/{id}:
+ *   get:
+ *     summary: Get one train by ID
+ *     tags:
+ *       - Trains
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The train ID
+ *     responses:
+ *       200:
+ *         description: The requested train
+ *       404:
+ *         description: Train not found
+ *       500:
+ *         description: Failed to fetch train
+ */
+router.get("/trains/:id", getTrainById);
 
 /**
  * @swagger
@@ -208,6 +375,7 @@ router.get("/trips/:id/schedules", (req, res, next) => {
 
   return getSchedulesForTrip(req, res, next);
 });
+
 /**
  * @swagger
  * /api/trips/{id}:
@@ -260,7 +428,7 @@ router.get("/trips/:id/schedules", (req, res, next) => {
  *       404:
  *         description: Trip not found
  */
-router.put('/trips/:id', requireAuth, requireAdmin, updateTrip);
+router.put("/trips/:id", requireAuth, requireAdmin, updateTrip);
 
 /**
  * @swagger
@@ -287,7 +455,8 @@ router.put('/trips/:id', requireAuth, requireAdmin, updateTrip);
  *       404:
  *         description: Trip not found
  */
-router.delete('/trips/:id', requireAuth, requireAdmin, deleteTrip);
+router.delete("/trips/:id", requireAuth, requireAdmin, deleteTrip);
+
 /**
  * @swagger
  * components:
@@ -373,10 +542,6 @@ router.get("/stations", getAllStations);
  *     responses:
  *       200:
  *         description: Station details retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Station'
  *       404:
  *         description: Station not found
  *       500:

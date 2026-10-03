@@ -24,11 +24,7 @@ router.post("/routes/book", processBookingRequest);
 router.get("/routes/bookings/:bookingId", bookingConfirmationPage);
 
 // Bookings admin page
-router.get(
-  "/bookings-admin",
-  requirePageRole("admin"),
-  bookingsAdminPage,
-);
+router.get("/bookings-admin", requirePageRole("admin"), bookingsAdminPage);
 
 router.get("/login", (req, res) => {
   res.render("login", {
@@ -46,10 +42,17 @@ router.get("/user/dashboard", requirePageLogin, (req, res) => {
 // User admin page
 router.get("/user-admin", requirePageLogin, userAdminPage);
 
-router.get('/403', (req, res) => {
-  res.status(403).render('errors/403', { 
-    title: '403 - Access Denied',
-    user: req.user || req.session?.user 
+router.get("/trains", (req, res) => {
+  res.render("trains", {
+    title: "Trains",
   });
 });
+
+router.get("/403", (req, res) => {
+  res.status(403).render("errors/403", {
+    title: "403 - Access Denied",
+    user: req.user || req.session?.user,
+  });
+});
+
 export default router;
