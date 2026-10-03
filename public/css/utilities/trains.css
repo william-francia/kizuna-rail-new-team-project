@@ -1,0 +1,186 @@
+.train-controls {
+  display: flex;
+  gap: var(--space-lg);
+  align-items: end;
+  flex-wrap: wrap;
+  margin-bottom: var(--space-lg);
+}
+
+.train-search,
+.train-sort {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.train-search label,
+.train-sort label {
+  color: var(--clr-text-secondary);
+  font-weight: 600;
+}
+
+.train-search input,
+.train-sort select {
+  min-height: 42px;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  background-color: var(--clr-surface);
+  color: var(--clr-text-primary);
+  font: inherit;
+}
+
+.train-search input {
+  width: min(400px, 80vw);
+}
+
+.train-search input:focus,
+.train-sort select:focus {
+  outline: 2px solid var(--clr-primary);
+  outline-offset: 2px;
+}
+
+.train-card {
+  grid-template-areas:
+    "header"
+    "image"
+    "details"
+    "description"
+    "highlights";
+}
+
+.train-card .route-header {
+  grid-area: header;
+}
+
+.train-card .train-image-wrapper {
+  grid-area: image;
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+}
+
+.train-card .train-image {
+  display: block;
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+}
+
+.train-card .route-details {
+  grid-area: details;
+}
+
+.train-card .train-description {
+  grid-area: description;
+}
+
+.train-card .highlights {
+  grid-area: highlights;
+}
+
+.train-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-md);
+  margin: var(--space-xl) 0;
+}
+
+.train-pagination button {
+  padding: var(--space-sm) var(--space-lg);
+  background-color: var(--clr-primary);
+  border: 1px solid var(--clr-primary);
+  color: var(--clr-text-alt-primary);
+  border-radius: var(--radius-md);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.train-pagination button:hover:not(:disabled) {
+  background-color: var(--clr-accent);
+  box-shadow: var(--shadow-md);
+}
+
+.train-pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#page-info {
+  min-width: 120px;
+  text-align: center;
+  color: var(--clr-text-primary);
+  font-weight: 600;
+}
+
+#train-status {
+  min-height: 1.5rem;
+  color: var(--clr-text-secondary);
+}
+
+@media (min-width: 768px) {
+  .train-card {
+    grid-template-areas:
+      "header header"
+      "image details"
+      "description description"
+      "highlights highlights";
+  }
+
+  .train-card .train-image {
+    height: 240px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .train-card {
+    grid-template-columns: 1fr 1fr auto;
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      "header header details"
+      "image description details"
+      "image highlights details";
+  }
+
+  .train-card .train-image {
+    height: 280px;
+  }
+
+  .train-card .route-details {
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+  }
+
+  .train-controls {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 600px) {
+  .train-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .train-search input,
+  .train-sort select {
+    width: 100%;
+  }
+
+  .train-pagination {
+    gap: var(--space-sm);
+  }
+
+  .train-pagination button {
+    padding: var(--space-sm);
+  }
+
+  #page-info {
+    min-width: 90px;
+  }
+}
