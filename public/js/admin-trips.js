@@ -4,7 +4,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const editForm = document.getElementById('edit-trip-form');
   const cancelBtn = document.getElementById('cancel-edit-btn');
 
+  const prevBtn = document.getElementById('prev-page-btn');
+  const nextBtn = document.getElementById('next-page-btn');
+  const pageInfo = document.getElementById('page-info');
+const urlParams = new URLSearchParams(window.location.search);
+const parsedPage = parseInt(urlParams.get('page'), 10);
+  const parsedLimit = parseInt(urlParams.get('limit'), 10);
+let currentPage = (!isNaN(parsedPage) && parsedPage > 0) ? parsedPage : 1;
+  let limit = (!isNaN(parsedLimit) && parsedLimit > 0) ? parsedLimit : 10;
+  let totalPages = 1;
   let currentTrips = [];
+
 
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
     '&': '&amp;',
@@ -14,18 +24,44 @@ document.addEventListener('DOMContentLoaded', () => {
     "'": '&#39;'
   }[c]));
 
-  async function loadTrips() {
+  async function loadTrips(page = currentPage, currentLimit = limit) {
     try {
-      const response = await fetch('/api/trips');
-      if (!response.ok) throw new Error('Failed to load trips');
-      
-      currentTrips = await response.json();
+      const response = await fetch(`/api/trips?page=${page}&limit=${currentLimit}`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+      const data = await response.json();
+
+      currentTrips = data.trips || [];
+      const pagination = data.pagination || {};
+
+      currentPage = pagination.currentPage || page;
+      totalPages = pagination.totalPages || 1;
+      limit = currentLimit;
+
+      const currentQuery = `?page=${currentPage}&limit=${limit}`;
+      if (window.location.search !== currentQuery) {
+        window.history.pushState({}, '', `${window.location.pathname}${currentQuery}`);
+      }
+
       renderTrips(currentTrips);
+      updatePaginationControls();
     } catch (error) {
-      console.error(error);
+      console.error('Error fetching trips:', error);
       if (tableBody) {
         tableBody.innerHTML = `<tr><td colspan="7">Error loading trips.</td></tr>`;
       }
+    }
+  }
+
+  function updatePaginationControls() {
+    if (pageInfo) {
+      pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+    }
+    if (prevBtn) {
+      prevBtn.disabled = currentPage <= 1;
+    }
+    if (nextBtn) {
+      nextBtn.disabled = currentPage >= totalPages;
     }
   }
 
@@ -102,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
           try {
             const res = await fetch(`/api/trips/${tripId}`, { method: 'DELETE' });
             if (!res.ok) throw new Error('Failed to delete trip');
-            await loadTrips();
+            await loadTrips(currentPage);
           } catch (err) {
             console.error(err);
             alert('Error deleting trip');
@@ -148,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         closeModal();
-        await loadTrips();
+        await loadTrips(currentPage);
       } catch (err) {
         console.error('Error al actualizar:', err);
         alert(`Error al actualizar el viaje: ${err.message}`);
@@ -169,5 +205,21 @@ document.addEventListener('DOMContentLoaded', () => {
     cancelBtn.addEventListener('click', closeModal);
   }
 
-  loadTrips();
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      if (currentPage > 1) {
+        loadTrips(currentPage - 1);
+      }
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      if (currentPage < totalPages) {
+        loadTrips(currentPage + 1);
+      }
+    });
+  }
+
+  loadTrips(currentPage, limit);
 });

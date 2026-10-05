@@ -2,11 +2,11 @@ import mongoose from "mongoose";
 import Trip from "./schemas/trips.js";
 
 export async function getTripById(id) {
-  return Trip.findOne({ id }).lean();
+  return await Trip.findById(id);
 }
 
-export async function getAllTrips() {
-  return Trip.find({}).lean();
+export async function getAllTrips({ skip = 0, limit = 10, filter = {} } = {}) {
+  return await Trip.find(filter).skip(skip).limit(limit);
 }
 
 export const updateTripById = async (id, updateData) => {
@@ -28,3 +28,7 @@ export const deleteTripById = async (id) => {
 
   return await Trip.findOneAndDelete(query).lean();
 };
+
+export async function countAllTrips(filter = {}) {
+  return await Trip.countDocuments(filter);
+}

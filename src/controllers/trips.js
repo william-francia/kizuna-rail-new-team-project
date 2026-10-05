@@ -2,8 +2,23 @@ import {
   getTripById as findTripById,
   getAllTrips as findAllTrips,
   updateTripById as updateTripModel,
-  deleteTripById as deleteTripModel,
+  deleteTripById as deleteTripModel, countAllTrips,
 } from "../models/trips.js";
+
+
+function parsePositiveInteger(value, defaultValue) {
+  if (value === undefined || value === null || value === "") {
+    return defaultValue;
+  }
+
+  const parsed = Number(value);
+
+  if (Number.isNaN(parsed) || !Number.isInteger(parsed) || parsed <= 0) {
+    return null;
+  }
+
+  return parsed;
+}
 
 export async function getTripById(req, res) {
   try {
@@ -28,9 +43,36 @@ export async function getTripById(req, res) {
 
 export async function getAllTrips(req, res) {
   try {
-    const trips = await findAllTrips();
+    const pageParam = req.query.page !== undefined ? req.query.page : "1";
+    const limitParam = req.query.limit !== undefined ? req.query.limit : "10";
 
-    return res.status(200).json(trips);
+    const page = parsePositiveInteger(pageParam, 1);
+    const limit = parsePositiveInteger(limitParam, 10);
+
+    if (page === null || limit === null) {
+      return res.status(400).json({
+        error: "Invalid pagination parameters. 'page' and 'limit' must be positive integers.",
+      });
+    }
+
+    const skip = (page - 1) * limit;
+
+    const [trips, totalItems] = await Promise.all([
+      findAllTrips({ skip, limit }),
+      countAllTrips(),
+    ]);
+
+    const totalPages = Math.ceil(totalItems / limit) || 1;
+
+    return res.status(200).json({
+      trips,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        limit,
+      },
+    });
   } catch (error) {
     console.error("Error fetching trips:", error);
 
