@@ -13,25 +13,31 @@
     <p>Logged in as: <strong><%= user ? user.username : 'Admin' %></strong></p>
 
     <section class="admin-table-container">
-  <table id="trips-table">
-    <thead>
-      <tr>
-        <th>Route Name</th>
-        <th>Region</th>
-        <th>Start Station</th>
-        <th>End Station</th>
-        <th>Duration</th>
-        <th>Distance</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="trips-table-body">
-      <tr>
-        <td colspan="7" class="text-center">Loading trips...</td>
-      </tr>
-    </tbody>
-  </table>
-</section>
+      <table id="trips-table">
+        <thead>
+          <tr>
+            <th>Route Name</th>
+            <th>Region</th>
+            <th>Start Station</th>
+            <th>End Station</th>
+            <th>Duration</th>
+            <th>Distance</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="trips-table-body">
+          <tr>
+            <td colspan="7" class="text-center">Loading trips...</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div id="pagination-container" class="pagination-controls my-4 flex justify-center gap-2 items-center">
+        <button id="prev-page-btn" class="btn btn-secondary" disabled>&laquo; Previous</button>
+        <span id="page-info">Page 1 of 1</span>
+        <button id="next-page-btn" class="btn btn-secondary" disabled>Next &raquo;</button>
+      </div>
+    </section>
 
     <dialog id="edit-trip-modal">
       <form id="edit-trip-form">
