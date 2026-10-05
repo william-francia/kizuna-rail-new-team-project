@@ -7,11 +7,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const prevBtn = document.getElementById('prev-page-btn');
   const nextBtn = document.getElementById('next-page-btn');
   const pageInfo = document.getElementById('page-info');
-
-  let currentTrips = [];
-  let currentPage = 1;
+const urlParams = new URLSearchParams(window.location.search);
+const parsedPage = parseInt(urlParams.get('page'), 10);
+  const parsedLimit = parseInt(urlParams.get('limit'), 10);
+let currentPage = (!isNaN(parsedPage) && parsedPage > 0) ? parsedPage : 1;
+  let limit = (!isNaN(parsedLimit) && parsedLimit > 0) ? parsedLimit : 10;
   let totalPages = 1;
-  const limit = 10;
+  let currentTrips = [];
+
 
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
     '&': '&amp;',
@@ -21,23 +24,29 @@ document.addEventListener('DOMContentLoaded', () => {
     "'": '&#39;'
   }[c]));
 
-  async function loadTrips(page = 1) {
+  async function loadTrips(page = currentPage, currentLimit = limit) {
     try {
-      const response = await fetch(`/api/trips?page=${page}&limit=${limit}`);
-      if (!response.ok) throw new Error('Failed to load trips');
+      const response = await fetch(`/api/trips?page=${page}&limit=${currentLimit}`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
       const data = await response.json();
-      
+
       currentTrips = data.trips || [];
       const pagination = data.pagination || {};
 
       currentPage = pagination.currentPage || page;
       totalPages = pagination.totalPages || 1;
+      limit = currentLimit;
+
+      const currentQuery = `?page=${currentPage}&limit=${limit}`;
+      if (window.location.search !== currentQuery) {
+        window.history.pushState({}, '', `${window.location.pathname}${currentQuery}`);
+      }
 
       renderTrips(currentTrips);
       updatePaginationControls();
     } catch (error) {
-      console.error(error);
+      console.error('Error fetching trips:', error);
       if (tableBody) {
         tableBody.innerHTML = `<tr><td colspan="7">Error loading trips.</td></tr>`;
       }
@@ -212,5 +221,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  loadTrips(1);
+  loadTrips(currentPage, limit);
 });
