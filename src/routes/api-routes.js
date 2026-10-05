@@ -19,8 +19,8 @@ import {
   updateUserById,
   deleteUserById,
 } from "../controllers/users.js";
-import { requireApiLogin, requireApiRole } from "../middleware/auth.js";
 
+import { requireApiLogin, requireApiRole } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -471,6 +471,5 @@ router.get('/stations/:id', getStationById);
 router.get("/users", requireApiRole("admin"), getUsers);
 router.put("/users/:id", requireApiLogin, updateUserById);
 router.delete("/users/:id", requireApiLogin, deleteUserById);
-
 
 export default router;

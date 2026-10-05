@@ -5,10 +5,8 @@ import {
   bookingConfirmationPage,
   bookingsAdminPage,
 } from "../controllers/bookings.js";
-import {
-  renderTripListPage,
-  renderTripDetailsPage,
-} from "../controllers/trips.js";
+import { renderTripListPage } from "../controllers/routes/index.js";
+import { renderTripDetailsPage } from "../controllers/routes/details.js";
 import { userAdminPage } from "../controllers/users.js";
 import { requirePageLogin, requirePageRole } from "../middleware/auth.js";
 

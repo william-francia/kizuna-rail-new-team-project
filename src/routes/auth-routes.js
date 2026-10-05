@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { login, logout, register } from "../controllers/auth.js";
-import { usersAdminPage } from "../controllers/users.js";
+import { userAdminPage } from "../controllers/users.js";
 import { requirePageRole } from "../middleware/auth.js";
 
 const router = Router();
@@ -21,7 +21,7 @@ router.get("/admin", requirePageRole("admin"), (req, res) => {
   res.render("admin/dashboard", { title: "Admin Dashboard" });
 });
 
-router.get("/users-admin", requirePageRole("admin"), usersAdminPage);
+router.get("/users-admin", requirePageRole("admin"), userAdminPage);
 
 router.post("/register", register);
 router.post("/login", login);

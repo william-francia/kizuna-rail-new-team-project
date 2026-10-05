@@ -29,6 +29,24 @@ const userSchema = new mongoose.Schema(
       ref: "Role",
       required: true,
     },
+    bio: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    avatarUrl: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    lastLogin: {
+      type: Date,
+      default: null,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,

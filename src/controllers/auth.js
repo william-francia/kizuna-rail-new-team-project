@@ -1,6 +1,7 @@
 import {
   createUser,
   findUserByEmail,
+  recordUserLogin,
   verifyPassword,
 } from "../models/users.js";
 
@@ -59,13 +60,15 @@ export async function login(req, res) {
     const user = await findUserByEmail(email);
     const passwordMatches = user && (await verifyPassword(password, user.passwordHash));
 
-    if (!passwordMatches || !user.role?.name) {
+    if (!passwordMatches || !user.role?.name || user.isActive === false) {
       return res.status(401).render("auth/login", {
         title: "Login",
         error: "Invalid email or password.",
         values,
       });
     }
+
+    await recordUserLogin(user._id);
 
     req.session.user = {
       id: user._id.toString(),
