@@ -16,10 +16,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function loadTrips() {
     try {
-      const response = await fetch('/api/trips');
-      if (!response.ok) throw new Error('Failed to load trips');
-      
-      currentTrips = await response.json();
+      const trips = [];
+      let page = 1;
+      let hasNextPage = true;
+
+      while (hasNextPage) {
+        const response = await fetch(`/api/trips?page=${page}`);
+        if (!response.ok) throw new Error('Failed to load trips');
+
+        const data = await response.json();
+        if (!Array.isArray(data.results) || !data.meta) {
+          throw new Error('Invalid trips response');
+        }
+
+        trips.push(...data.results);
+        hasNextPage = data.meta.hasNextPage;
+        page += 1;
+      }
+
+      currentTrips = trips;
       renderTrips(currentTrips);
     } catch (error) {
       console.error(error);

@@ -1,265 +1,122 @@
 <%- include('partials/header') %>
 
-<article class="user-admin-page">
-  <div class="route-header">
-    <div class="route-header-content">
-      <h1 class="route-name"><%= title %></h1>
-      <p class="route-description">Manage user information.</p>
-    </div>
-  </div>
+  <script>
+    document.body.dataset.userRole = "<%= user?.role || '' %>";
+    document.body.dataset.userId = "<%= user?.id || '' %>";
+  </script>
 
-  <section class="user-admin">
-    <p id="users-status" class="users-status" aria-live="polite">
-      Loading users...
-    </p>
-
-    <div class="users-list" id="users-list"></div>
-  </section>
-</article>
-
-<template id="user-template">
-  <article class="user-card">
-    <h2 class="user-name"></h2>
-
-    <form class="user-form">
-      <label>
-        Display Name
-        <input
-          class="user-display-name"
-          type="text"
-          name="displayName"
-          required
-        />
-      </label>
-
-      <label>
-        Username
-        <input class="user-username" type="text" name="username" required />
-      </label>
-
-      <label>
-        Email
-        <input class="user-email" type="email" name="email" required />
-      </label>
-
-      <% if (user?.role === "admin") { %>
-        <label class="role-field">
-          Role
-          <select class="user-role" name="role">
-            <option value="customer">Customer</option>
-            <option value="admin">Admin</option>
-          </select>
-        </label>
-      <% } %>
-
-      <label>
-        New Password
-        <input class="user-password" type="password" name="password" />
-      </label>
-
-      <div class="user-actions">
-        <button type="submit">Update</button>
-        <button type="button" class="delete-user">Delete</button>
+  <article class="user-admin-page">
+    <div class="route-header">
+      <div class="route-header-content">
+        <h1 class="route-name">
+          <%= title %>
+        </h1>
+        <p class="route-description">Manage user information.</p>
       </div>
-    </form>
+    </div>
+
+    <section class="user-admin">
+      <p id="users-status" class="users-status" aria-live="polite">
+        Loading users...
+      </p>
+
+      <div class="users-list" id="users-list"></div>
+
+      <div id="users-pagination" class="users-pagination"></div>
+    </section>
   </article>
-</template>
 
-<script>
-  const statusMessage = document.querySelector("#users-status");
-  const usersList = document.querySelector("#users-list");
-  const userTemplate = document.querySelector("#user-template");
+  <template id="user-template">
+    <article class="user-card">
+      <h2 class="user-name"></h2>
 
-  const currentUserRole = "<%= user?.role || '' %>";
-  const currentUserId = "<%= user?.id || '' %>";
+      <form class="user-form">
+        <label>
+          Display Name
+          <input class="user-display-name" type="text" name="displayName" required />
+        </label>
 
-  const fetchUsers = async () => {
-    const response = await fetch("/api/users");
+        <label>
+          Username
+          <input class="user-username" type="text" name="username" required />
+        </label>
 
-    if (!response.ok) {
-      throw new Error("Unable to load users.");
+        <label>
+          Email
+          <input class="user-email" type="email" name="email" required />
+        </label>
+
+        <% if (user?.role === "admin" ) { %>
+          <label class="role-field">
+            Role
+            <select class="user-role" name="role">
+              <option value="customer">Customer</option>
+              <option value="admin">Admin</option>
+            </select>
+          </label>
+          <% } %>
+
+            <label>
+              New Password
+              <input class="user-password" type="password" name="password" />
+            </label>
+
+            <div class="user-actions">
+              <button type="submit">Update</button>
+              <button type="button" class="delete-user">Delete</button>
+            </div>
+      </form>
+    </article>
+  </template>
+
+  <style>
+    .user-admin {
+      padding: 1rem;
     }
 
-    return response.json();
-  };
-
-  const updateUser = async (id, data) => {
-    const response = await fetch(`/api/users/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.error || "Unable to update user.");
+    .users-status {
+      margin-bottom: 1rem;
     }
-  };
 
-  const deleteUser = async (id) => {
-    const response = await fetch(`/api/users/${id}`, {
-      method: "DELETE",
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.error || "Unable to delete user.");
+    .users-list {
+      display: grid;
+      gap: 1.5rem;
     }
-  };
 
-  const renderUsers = (users) => {
-    const fragment = document.createDocumentFragment();
-
-    users.forEach((user) => {
-      const card = userTemplate.content.cloneNode(true);
-      const form = card.querySelector(".user-form");
-
-      card.querySelector(".user-name").textContent = user.displayName;
-
-      form.querySelector(".user-display-name").value = user.displayName;
-      form.querySelector(".user-username").value = user.username;
-      form.querySelector(".user-email").value = user.email;
-
-      const roleField = form.querySelector(".user-role");
-
-      if (roleField) {
-        roleField.value = user.role?.name || "customer";
-      }
-
-      form.dataset.userId = user._id;
-
-      form.addEventListener("submit", async (event) => {
-        event.preventDefault();
-
-        const data = {
-          displayName: form.querySelector(".user-display-name").value,
-          username: form.querySelector(".user-username").value,
-          email: form.querySelector(".user-email").value,
-        };
-
-        if (currentUserRole === "admin") {
-          data.role = form.querySelector(".user-role").value;
-        }
-
-        const password = form.querySelector(".user-password").value;
-
-        if (password) {
-          data.password = password;
-        }
-
-        try {
-          statusMessage.textContent = "Updating user...";
-
-          await updateUser(form.dataset.userId, data);
-          await loadUsers();
-
-          statusMessage.textContent = "User updated successfully.";
-        } catch (error) {
-          statusMessage.textContent = error.message;
-        }
-      });
-
-      card.querySelector(".delete-user").addEventListener("click", async () => {
-        if (!window.confirm("Are you sure you want to delete this user?")) {
-          return;
-        }
-
-        try {
-          statusMessage.textContent = "Deleting user...";
-
-          await deleteUser(form.dataset.userId);
-
-          if (form.dataset.userId === currentUserId) {
-            window.location.href = "/login";
-            return;
-          }
-
-          await loadUsers();
-
-          statusMessage.textContent = "User deleted successfully.";
-        } catch (error) {
-          statusMessage.textContent = error.message;
-        }
-      });
-
-      fragment.append(card);
-    });
-
-    usersList.replaceChildren(fragment);
-  };
-
-  const loadUsers = async () => {
-    statusMessage.textContent = "Loading users...";
-
-    try {
-      const users = await fetchUsers();
-
-      renderUsers(users);
-
-      statusMessage.textContent =
-        users.length === 0
-          ? "No users found."
-          : `Showing ${users.length} user${users.length === 1 ? "" : "s"}.`;
-    } catch (error) {
-      usersList.replaceChildren();
-      statusMessage.textContent = error.message;
+    .user-card {
+      padding: 1.5rem;
+      border: 1px solid rgba(128, 128, 128, 0.3);
+      border-radius: 8px;
     }
-  };
 
-  loadUsers();
-</script>
+    .user-card h2 {
+      margin-top: 0;
+    }
 
-<style>
-  .user-admin {
-    padding: 1rem;
-  }
+    .user-form {
+      display: grid;
+      gap: 1rem;
+    }
 
-  .users-status {
-    margin-bottom: 1rem;
-  }
+    .user-form label {
+      display: grid;
+      gap: 0.35rem;
+    }
 
-  .users-list {
-    display: grid;
-    gap: 1.5rem;
-  }
+    .user-form input,
+    .user-form select {
+      padding: 0.5rem;
+    }
 
-  .user-card {
-    padding: 1.5rem;
-    border: 1px solid rgba(128, 128, 128, 0.3);
-    border-radius: 8px;
-  }
+    .user-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
 
-  .user-card h2 {
-    margin-top: 0;
-  }
+    .user-actions button {
+      padding: 0.5rem 1rem;
+    }
+  </style>
 
-  .user-form {
-    display: grid;
-    gap: 1rem;
-  }
-
-  .user-form label {
-    display: grid;
-    gap: 0.35rem;
-  }
-
-  .user-form input,
-  .user-form select {
-    padding: 0.5rem;
-  }
-
-  .user-actions {
-    display: flex;
-    gap: 0.75rem;
-  }
-
-  .user-actions button {
-    padding: 0.5rem 1rem;
-  }
-</style>
-
-<%- include('partials/footer') %>
+  <script src="/js/user-admin.js"></script>
+  <%- include('partials/footer') %>

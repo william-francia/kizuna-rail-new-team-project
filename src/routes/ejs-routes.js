@@ -14,17 +14,16 @@ import { requirePageLogin, requirePageRole } from "../middleware/auth.js";
 
 const router = Router();
 
-// Trips EJS pages
 router.get("/routes", renderTripListPage);
+router.get("/trips", renderTripListPage);
 router.get("/routes/:routeId", renderTripDetailsPage);
 
-// Booking pages
 router.get("/routes/booking/:scheduleId", bookingPage);
 router.post("/routes/book", processBookingRequest);
 router.get("/routes/bookings/:bookingId", bookingConfirmationPage);
 
-// Bookings admin page
-router.get("/bookings-admin", requirePageRole("admin"), bookingsAdminPage);
+// Bookings admin page (protected - requires login; the API filters by role)
+router.get("/bookings-admin", requirePageLogin, bookingsAdminPage);
 
 router.get("/login", (req, res) => {
   res.render("login", {
@@ -40,18 +39,11 @@ router.get("/user/dashboard", requirePageLogin, (req, res) => {
 });
 
 // User admin page
-router.get("/user-admin", requirePageLogin, userAdminPage);
+router.get("/users", requirePageRole("admin"), userAdminPage);
 
 router.get("/trains", (req, res) => {
   res.render("trains", {
     title: "Trains",
-  });
-});
-
-router.get("/403", (req, res) => {
-  res.status(403).render("errors/403", {
-    title: "403 - Access Denied",
-    user: req.user || req.session?.user,
   });
 });
 

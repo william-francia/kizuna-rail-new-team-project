@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import {
-  getAllUsers,
+  getPaginatedUsers,
   getUserById,
   updateUser,
   deleteUser,
@@ -12,22 +12,75 @@ export function userAdminPage(req, res) {
   });
 }
 
+export async function usersAdminPage(req, res, next) {
+  try {
+    const users = await getPaginatedUsers();
+
+    return res.render("users-admin", {
+      title: "Users Admin",
+      users: users.users,
+    });
+  } catch (error) {
+    console.error("Error loading users admin page:", error);
+    return next(error);
+  }
+}
+
 export async function getUsers(req, res) {
   try {
-    if (req.user.role === "admin") {
-      const users = await getAllUsers();
-      return res.status(200).json(users);
-    }
+    const pageValue = req.query.page ?? "1";
+    const limitValue = req.query.limit ?? "10";
+    const sort = req.query.sort ?? "username";
 
-    const user = await getUserById(req.user.id);
+    const page = Number(pageValue);
+    const limit = Number(limitValue);
 
-    if (!user) {
-      return res.status(404).json({
-        error: "User not found",
+    if (
+      !Number.isInteger(page) ||
+      page < 1 ||
+      String(page) !== String(pageValue)
+    ) {
+      return res.status(400).json({
+        error: "Page must be a positive integer.",
       });
     }
 
-    return res.status(200).json([user]);
+    if (
+      !Number.isInteger(limit) ||
+      limit < 1 ||
+      String(limit) !== String(limitValue)
+    ) {
+      return res.status(400).json({
+        error: "Limit must be a positive integer.",
+      });
+    }
+
+    const allowedSortFields = ["username", "displayName", "email"];
+
+    if (!allowedSortFields.includes(sort)) {
+      return res.status(400).json({
+        error: "Invalid sort field.",
+      });
+    }
+
+    const { users, totalItems } = await getPaginatedUsers(
+      page,
+      limit,
+      sort,
+    );
+
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return res.status(200).json({
+      data: users,
+      metadata: {
+        page,
+        limit,
+        totalItems,
+        totalPages,
+        sort,
+      },
+    });
   } catch (error) {
     console.error("Error fetching users:", error);
 

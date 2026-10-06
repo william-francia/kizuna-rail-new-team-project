@@ -1,9 +1,65 @@
 import {
   getTripById as findTripById,
-  getAllTrips as findAllTrips,
+  getTripsPage as findTripsPage,
   updateTripById as updateTripModel,
   deleteTripById as deleteTripModel,
 } from "../models/trips.js";
+
+export const TRIPS_PER_PAGE = 10;
+
+export function parseTripPage(value) {
+  if (value === undefined) {
+    return 1;
+  }
+
+  if (typeof value !== "string" || !/^\d+$/.test(value)) {
+    return null;
+  }
+
+  const page = Number(value);
+  return Number.isSafeInteger(page) && page > 0 ? page : null;
+}
+
+export function createGetAllTrips(findPage = findTripsPage) {
+  return async function getAllTrips(req, res) {
+    const page = parseTripPage(req.query.page);
+
+    if (page === null) {
+      return res.status(400).json({
+        error: "Invalid page parameter",
+        details: [
+          {
+            field: "page",
+            message: "page must be a positive integer",
+          },
+        ],
+      });
+    }
+
+    try {
+      const { results, totalItems } = await findPage(page, TRIPS_PER_PAGE);
+      const totalPages = Math.ceil(totalItems / TRIPS_PER_PAGE);
+
+      return res.status(200).json({
+        results,
+        meta: {
+          page,
+          perPage: TRIPS_PER_PAGE,
+          totalItems,
+          totalPages,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1 && totalPages > 0,
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching trips:", error);
+
+      return res.status(500).json({
+        error: "Failed to fetch trips",
+      });
+    }
+  };
+}
 
 export async function getTripById(req, res) {
   try {
@@ -26,19 +82,7 @@ export async function getTripById(req, res) {
   }
 }
 
-export async function getAllTrips(req, res) {
-  try {
-    const trips = await findAllTrips();
-
-    return res.status(200).json(trips);
-  } catch (error) {
-    console.error("Error fetching trips:", error);
-
-    return res.status(500).json({
-      error: "Failed to fetch trips",
-    });
-  }
-}
+export const getAllTrips = createGetAllTrips();
 
 export async function renderTripListPage(req, res) {
   return res.render("routes/list", {

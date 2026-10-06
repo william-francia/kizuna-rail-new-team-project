@@ -8,11 +8,8 @@ import { homePage, aboutPage, testErrorPage } from "./index.js";
 
 const router = Router();
 
-// Home page
-router.get("/", homePage);
-
-// About page
-router.get("/about", aboutPage);
+router.get('/', homePage);
+router.get('/about', aboutPage);
 
 // Authentication pages
 router.use("/", authRoutes);
@@ -24,16 +21,9 @@ router.use("/scenarios", challengeScenariosRouter);
 router.use("/", ejsRoutes);
 
 // JSON API
-router.use("/api", apiRoutes);
-
-// Challenge scenarios
-router.use("/scenarios", challengeScenariosRouter);
-
-router.get("/trains", (req, res) => {
-  res.render("trains", {
-    title: "Trains",
-  });
-});
+router.use('/api', apiRoutes);
+router.use('/scenarios', challengeScenariosRouter);
+router.get('/500', testErrorPage);
 
 // Test 500 error page
 router.get("/500", testErrorPage);

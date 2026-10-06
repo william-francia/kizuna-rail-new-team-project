@@ -1,6 +1,7 @@
 {
   "name": "kizuna-rail-byui-demo",
   "dependencies": {
+    "dotenv": "^18.0.4",
     "bcrypt": "^6.0.0",
     "dotenv": "^18.0.1",
     "ejs": "^3.1.10",
@@ -14,6 +15,7 @@
     "dev": "nodemon --env-file=.env server.js",
     "reset": "node restore.js 3000 3001",
     "start": "node server.js",
+    "test": "node --test",
     "lint": "eslint .",
     "seed": "node --env-file=.env seed.js",
     "seed:roles": "node --env-file=.env scripts/seed-auth-roles.js"
