@@ -8,6 +8,8 @@ const setLocalVariables = (req, res, next) => {
     // Make any query parameters available to all templates
     res.locals.query = req.query;
 
+    // res.locals.user is set by loadSessionUser in middleware/auth.js
+
     next();
 };
 
