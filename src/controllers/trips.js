@@ -7,9 +7,9 @@ import {
 
 export const TRIPS_PER_PAGE = 10;
 
-export function parseTripPage(value) {
-  if (value === undefined) {
-    return 1;
+export function parseTripPage(value, defaultValue = 1) {
+  if (value === undefined || value === "") {
+    return defaultValue;
   }
 
   if (typeof value !== "string" || !/^\d+$/.test(value)) {
@@ -22,29 +22,43 @@ export function parseTripPage(value) {
 
 export function createGetAllTrips(findPage = findTripsPage) {
   return async function getAllTrips(req, res) {
-    const page = parseTripPage(req.query.page);
+    const page = parseTripPage(req.query.page, 1);
+    const limit = parseTripPage(req.query.limit, TRIPS_PER_PAGE);
 
-    if (page === null) {
+    if (page === null || limit === null) {
       return res.status(400).json({
-        error: "Invalid page parameter",
+        error: "Invalid pagination parameters",
         details: [
           {
-            field: "page",
-            message: "page must be a positive integer",
+            field: page === null ? "page" : "limit",
+            message: "Parameters must be positive integers",
           },
         ],
       });
     }
 
+    const filters = {
+      search: req.query.search || "",
+      region: req.query.region || "",
+      season: req.query.season || req.query.bestSeason || "",
+    };
+
     try {
-      const { results, totalItems } = await findPage(page, TRIPS_PER_PAGE);
-      const totalPages = Math.ceil(totalItems / TRIPS_PER_PAGE);
+      const { results, totalItems } = await findPage(page, limit, filters);
+      const totalPages = Math.ceil(totalItems / limit);
 
       return res.status(200).json({
+        trips: results, 
         results,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalItems,
+          limit,
+        },
         meta: {
           page,
-          perPage: TRIPS_PER_PAGE,
+          perPage: limit,
           totalItems,
           totalPages,
           hasNextPage: page < totalPages,
@@ -142,7 +156,7 @@ export async function updateTrip(req, res) {
       startStation,
       endStation,
       duration,
-      distance: distanceNum
+      distance: distanceNum,
     });
 
     if (!updatedTrip) {
@@ -156,9 +170,6 @@ export async function updateTrip(req, res) {
   }
 }
 
-
-
-
 export async function deleteTrip(req, res, next) {
   try {
     const { id } = req.params;
@@ -166,10 +177,10 @@ export async function deleteTrip(req, res, next) {
     const deletedTrip = await deleteTripModel(id);
 
     if (!deletedTrip) {
-      return res.status(404).json({ error: 'Trip not found' });
+      return res.status(404).json({ error: "Trip not found" });
     }
 
-    return res.status(200).json({ message: 'Trip deleted successfully', id });
+    return res.status(200).json({ message: "Trip deleted successfully", id });
   } catch (error) {
     next(error);
   }

@@ -4,7 +4,30 @@ document.addEventListener('DOMContentLoaded', () => {
   const editForm = document.getElementById('edit-trip-form');
   const cancelBtn = document.getElementById('cancel-edit-btn');
 
+  const prevBtn = document.getElementById('prev-page-btn');
+  const nextBtn = document.getElementById('next-page-btn');
+  const pageInfo = document.getElementById('page-info');
+
+  const searchInput = document.getElementById('search-input');
+  const regionFilter = document.getElementById('region-filter');
+  const seasonFilter = document.getElementById('season-filter');
+  const resetBtn = document.getElementById('reset-filters-btn');
+
+  const urlParams = new URLSearchParams(window.location.search);
+  let currentPage = parseInt(urlParams.get('page'), 10) || 1;
+  let currentLimit = parseInt(urlParams.get('limit'), 10) || 10;
+  let currentSearch = urlParams.get('search') || '';
+  let currentRegion = urlParams.get('region') || '';
+  let currentSeason = urlParams.get('season') || ''
+  ;
+
+  let totalPages = 1;
   let currentTrips = [];
+  let searchDebounceTimeout = null;
+
+  if (searchInput) searchInput.value = currentSearch;
+  if (regionFilter) regionFilter.value = currentRegion;
+  if (seasonFilter) seasonFilter.value = currentSeason;
 
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
     '&': '&amp;',
@@ -13,42 +36,57 @@ document.addEventListener('DOMContentLoaded', () => {
     '"': '&quot;',
     "'": '&#39;'
   }[c]));
+  
 
-  async function loadTrips() {
+  async function loadTrips(page = currentPage) {
     try {
-      const trips = [];
-      let page = 1;
-      let hasNextPage = true;
+      currentPage = page;
 
-      while (hasNextPage) {
-        const response = await fetch(`/api/trips?page=${page}`);
-        if (!response.ok) throw new Error('Failed to load trips');
+      const params = new URLSearchParams();
+params.set('page', currentPage);
+params.set('limit', currentLimit);
+if (currentSearch) params.set('search', currentSearch);
+if (currentRegion) params.set('region', currentRegion);
 
-        const data = await response.json();
-        if (!Array.isArray(data.results) || !data.meta) {
-          throw new Error('Invalid trips response');
-        }
+if (currentSeason) {
+  params.set('season', currentSeason);
+  params.set('bestSeason', currentSeason); 
+}
 
-        trips.push(...data.results);
-        hasNextPage = data.meta.hasNextPage;
-        page += 1;
-      }
+      const response = await fetch(`/api/trips?${params.toString()}`);
+      if (!response.ok) throw new Error('Failed to load trips');
 
-      currentTrips = trips;
+      const data = await response.json();
+      currentTrips = data.trips || data.results || [];
+      
+      const meta = data.meta || data.pagination || {};
+      totalPages = meta.totalPages || 1;
+      currentPage = meta.page || meta.currentPage || page;
+
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      window.history.pushState({}, '', newUrl);
+
       renderTrips(currentTrips);
+      updatePaginationControls();
     } catch (error) {
-      console.error(error);
+      console.error('Error loading trips:', error);
       if (tableBody) {
-        tableBody.innerHTML = `<tr><td colspan="7">Error loading trips.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="7" class="text-center">Error loading trips.</td></tr>`;
       }
     }
+  }
+
+  function updatePaginationControls() {
+    if (pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+    if (prevBtn) prevBtn.disabled = currentPage <= 1;
+    if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
   }
 
   function renderTrips(trips) {
     if (!tableBody) return;
 
     if (!trips || trips.length === 0) {
-      tableBody.innerHTML = '<tr><td colspan="7">No routes found.</td></tr>';
+      tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No routes found.</td></tr>';
       return;
     }
 
@@ -75,6 +113,54 @@ document.addEventListener('DOMContentLoaded', () => {
         </tr>
       `;
     }).join('');
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      currentSearch = e.target.value.trim();
+      clearTimeout(searchDebounceTimeout);
+      searchDebounceTimeout = setTimeout(() => {
+        loadTrips(1);
+      }, 300);
+    });
+  }
+
+  if (regionFilter) {
+    regionFilter.addEventListener('change', (e) => {
+      currentRegion = e.target.value;
+      loadTrips(1);
+    });
+  }
+
+  if (seasonFilter) {
+    seasonFilter.addEventListener('change', (e) => {
+      currentSeason = e.target.value;
+      loadTrips(1);
+    });
+  }
+
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      currentSearch = '';
+      currentRegion = '';
+      currentSeason = '';
+      if (searchInput) searchInput.value = '';
+      if (regionFilter) regionFilter.value = '';
+      if (seasonFilter) seasonFilter.value = '';
+      loadTrips(1);
+    });
+  }
+
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      if (currentPage > 1) loadTrips(currentPage - 1);
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      if (currentPage < totalPages) loadTrips(currentPage + 1);
+    });
   }
 
   if (tableBody) {
@@ -117,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
           try {
             const res = await fetch(`/api/trips/${tripId}`, { method: 'DELETE' });
             if (!res.ok) throw new Error('Failed to delete trip');
-            await loadTrips();
+            await loadTrips(currentPage);
           } catch (err) {
             console.error(err);
             alert('Error deleting trip');
@@ -163,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         closeModal();
-        await loadTrips();
+        await loadTrips(currentPage);
       } catch (err) {
         console.error('Error al actualizar:', err);
         alert(`Error al actualizar el viaje: ${err.message}`);
@@ -184,5 +270,5 @@ document.addEventListener('DOMContentLoaded', () => {
     cancelBtn.addEventListener('click', closeModal);
   }
 
-  loadTrips();
+  loadTrips(currentPage);
 });

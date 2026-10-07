@@ -5,12 +5,32 @@ export async function getTripById(id) {
   return Trip.findOne({ id }).lean();
 }
 
-export async function getTripsPage(page, perPage, tripModel = Trip) {
+export async function getTripsPage(page, perPage, filters = {}, tripModel = Trip) {
   const skip = (page - 1) * perPage;
+  const { search, region, season } = filters;
+
+  const query = {};
+
+  if (search && search.trim() !== "") {
+    const searchRegex = new RegExp(search.trim(), "i");
+    query.$or = [
+      { route_name: searchRegex },
+      { name: searchRegex },
+      { description: searchRegex }
+    ];
+  }
+
+  if (region && region.trim() !== "") {
+    query.region = new RegExp(`^${region.trim()}$`, "i");
+  }
+
+  if (season && season.trim() !== "") {
+    query.bestSeason = new RegExp(`^${season.trim()}$`, "i");
+  }
 
   const [results, totalItems] = await Promise.all([
-    tripModel.find({}).sort({ id: 1 }).skip(skip).limit(perPage).lean(),
-    tripModel.countDocuments({}),
+    tripModel.find(query).sort({ id: 1 }).skip(skip).limit(perPage).lean(),
+    tripModel.countDocuments(query),
   ]);
 
   return { results, totalItems };

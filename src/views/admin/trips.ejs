@@ -1,70 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title %></title>
+  <title>
+    <%= title %>
+  </title>
   <link rel="stylesheet" href="/css/styles.css">
 </head>
+
 <body>
   <main class="admin-page">
     <div class="container">
-    <h1>Trip Administration</h1>
-    <p>Logged in as: <strong><%= user ? user.username : 'Admin' %></strong></p>
+      <h1>Trip Administration</h1>
+      <p>Logged in as: <strong>
+          <%= user ? user.username : 'Admin' %>
+        </strong></p>
 
-    <section class="admin-table-container">
-  <table id="trips-table">
-    <thead>
-      <tr>
-        <th>Route Name</th>
-        <th>Region</th>
-        <th>Start Station</th>
-        <th>End Station</th>
-        <th>Duration</th>
-        <th>Distance</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="trips-table-body">
-      <tr>
-        <td colspan="7" class="text-center">Loading trips...</td>
-      </tr>
-    </tbody>
-  </table>
-</section>
+      <section class="filter-controls"
+        style="margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+        <div>
+          <label for="search-input">Search:</label>
+          <input type="text" id="search-input" placeholder="Search by name or description..." />
+        </div>
 
-    <dialog id="edit-trip-modal">
-      <form id="edit-trip-form">
-        <h2>Edit Route</h2>
-        <input type="hidden" id="edit-trip-id" />
-        
-        <label for="edit-name">Route Name:</label>
-        <input type="text" id="edit-name" required />
+        <div>
+          <label for="region-filter">Region:</label>
+          <select id="region-filter">
+            <option value="">All Regions</option>
+            <option value="Central">Central</option>
+            <option value="Kansai">Kansai</option>
+            <option value="Northern">Northern</option>
+          </select>
+        </div>
 
-        <label for="edit-region">Region:</label>
-        <input type="text" id="edit-region" required />
+        <div>
+          <label for="season-filter">Season:</label>
+          <select id="season-filter">
+            <option value="">All Seasons</option>
+            <option value="spring">spring</option>
+            <option value="summer">summer</option>
+            <option value="autumn">autumn</option>
+            <option value="winter">winter</option>
+          </select>
+        </div>
 
-        <label for="edit-start">Start Station:</label>
-        <input type="text" id="edit-start" required />
+        <button type="button" id="reset-filters-btn">Reset Filters</button>
+      </section>
 
-        <label for="edit-end">End Station:</label>
-        <input type="text" id="edit-end" required />
+      <section class="admin-table-container">
+        <table id="trips-table">
+          <thead>
+            <tr>
+              <th>Route Name</th>
+              <th>Region</th>
+              <th>Start Station</th>
+              <th>End Station</th>
+              <th>Duration</th>
+              <th>Distance</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="trips-table-body">
+            <tr>
+              <td colspan="7" class="text-center">Loading trips...</td>
+            </tr>
+          </tbody>
+        </table>
 
-        <label for="edit-duration">Duration:</label>
-        <input type="text" id="edit-duration" required />
+        <div class="pagination-controls" style="margin-top: 15px; display: flex; align-items: center; gap: 10px;">
+          <button type="button" id="prev-page-btn" disabled>&laquo; Previous</button>
+          <span id="page-info">Page 1 of 1</span>
+          <button type="button" id="next-page-btn" disabled>Next &raquo;</button>
+        </div>
+      </section>
 
-        <label for="edit-distance">Distance (km):</label>
-        <input type="number" id="edit-distance" required />
+      <dialog id="edit-trip-modal">
+        <form id="edit-trip-form">
+          <h2>Edit Route</h2>
+          <input type="hidden" id="edit-trip-id" />
 
-        <menu>
-          <button type="button" id="cancel-edit-btn">Cancel</button>
-          <button type="submit">Save Changes</button>
-        </menu>
-      </form>
-    </dialog>
+          <label for="edit-name">Route Name:</label>
+          <input type="text" id="edit-name" required />
+
+          <label for="edit-region">Region:</label>
+          <input type="text" id="edit-region" required />
+
+          <label for="edit-start">Start Station:</label>
+          <input type="text" id="edit-start" required />
+
+          <label for="edit-end">End Station:</label>
+          <input type="text" id="edit-end" required />
+
+          <label for="edit-duration">Duration:</label>
+          <input type="text" id="edit-duration" required />
+
+          <label for="edit-distance">Distance (km):</label>
+          <input type="number" id="edit-distance" required />
+
+          <menu>
+            <button type="button" id="cancel-edit-btn">Cancel</button>
+            <button type="submit">Save Changes</button>
+          </menu>
+        </form>
+      </dialog>
     </div>
   </main>
 
   <script src="/js/admin-trips.js" type="module"></script>
 </body>
+
 </html>
