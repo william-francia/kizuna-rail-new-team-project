@@ -65,7 +65,7 @@ export async function processBookingRequest(req, res, next) {
   try {
     const booking = await saveBooking(req.body);
 
-    return res.redirect(`/routes/confirmation/${booking.id}`);
+    return res.redirect(`/routes/bookings/${booking.id}`);
   } catch (error) {
     if (error.name === "ValidationError") {
       return res
@@ -81,9 +81,9 @@ export async function processBookingRequest(req, res, next) {
 
 export async function bookingConfirmationPage(req, res, next) {
   try {
-    const { confirmationId } = req.params;
+    const { bookingId } = req.params;
 
-    const confirmation = await findBookingById(confirmationId);
+    const confirmation = await findBookingById(bookingId);
 
     if (!confirmation) {
       const err = new Error("Booking not found");
@@ -93,7 +93,7 @@ export async function bookingConfirmationPage(req, res, next) {
 
     return res.render("routes/confirm", {
       title: "Trip Confirmation",
-      confirmation,
+      booking: confirmation,
     });
   } catch (error) {
     console.error("Error fetching booking:", error);
