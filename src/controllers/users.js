@@ -110,6 +110,34 @@ export async function getUsers(req, res) {
   }
 }
 
+export async function getUserByIdApi(req, res) {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({
+        error: "Invalid user ID",
+      });
+    }
+
+    const user = await getUserById(id);
+
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
+
+    return res.status(200).json(user);
+  } catch (error) {
+    console.error("Error fetching user:", error);
+
+    return res.status(500).json({
+      error: "Failed to fetch user",
+    });
+  }
+}
+
 export async function updateUserById(req, res) {
   try {
     const { id } = req.params;
