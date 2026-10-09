@@ -10,11 +10,11 @@ import { fileURLToPath } from "url";
 import connectDB from "./src/models/db.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./swagger.js";
-import dns from 'dns';
-dns.setDefaultResultOrder('ipv4first');
+import dns from "dns";
+dns.setDefaultResultOrder("ipv4first");
 if (process.env.DNS_SERVERS) {
-    const servers = process.env.DNS_SERVERS.split(',').map(s => s.trim());
-    dns.setServers(servers);
+  const servers = process.env.DNS_SERVERS.split(",").map((s) => s.trim());
+  dns.setServers(servers);
 }
 
 /**
@@ -145,4 +145,8 @@ const startServer = async () => {
   }
 };
 
-startServer();
+export default app;
+
+if (process.argv[1] && Path.resolve(process.argv[1]) === __filename) {
+  startServer();
+}
