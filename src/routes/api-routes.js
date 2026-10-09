@@ -3,6 +3,7 @@ import { getPaginatedTicketClasses } from "../controllers/ticket-classes.js";
 
 import {
   getAllBookings,
+  getBooking,
   updateBooking,
   deleteBooking,
 } from "../controllers/bookings.js";
@@ -129,6 +130,38 @@ const router = Router();
  *         description: Failed to fetch bookings.
  */
 router.get("/bookings", requireApiLogin, getAllBookings);
+
+/**
+ * @swagger
+ * /api/bookings/{id}:
+ *   get:
+ *     summary: Get one booking
+ *     tags: [Bookings]
+ *     description: Admins may read any booking. Standard users may only read bookings where they are a passenger.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The booking's custom string ID (e.g. JR8K2M4XQ)
+ *     responses:
+ *       200:
+ *         description: The booking.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Booking'
+ *       401:
+ *         description: Not authenticated.
+ *       403:
+ *         description: Not authorized to read this booking.
+ *       404:
+ *         description: Booking not found.
+ *       500:
+ *         description: Failed to fetch booking.
+ */
+router.get("/bookings/:id", requireApiLogin, getBooking);
 
 /**
  * @swagger
