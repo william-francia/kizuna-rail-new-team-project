@@ -14,7 +14,7 @@
     "dev": "nodemon --env-file=.env server.js",
     "reset": "node restore.js 3000 3001",
     "start": "node server.js",
-    "test": "node --test test/trips-pagination.test.js && vitest run",
+    "test": "node --test test/trips-pagination.test.js test/trips-search-filters.test.js && vitest run",
     "lint": "eslint .",
     "seed": "node --env-file=.env seed.js",
     "seed:roles": "node --env-file=.env scripts/seed-auth-roles.js"
