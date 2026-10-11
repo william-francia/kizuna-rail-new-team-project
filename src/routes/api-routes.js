@@ -6,7 +6,13 @@ import {
   updateBooking,
   deleteBooking,
 } from "../controllers/bookings.js";
-import { getAllTrips, getTripById } from "../controllers/trips.js";
+import {
+  createTrip,
+  deleteTrip,
+  getAllTrips,
+  getTripById,
+  updateTrip,
+} from "../controllers/trips.js";
 import {
   getSchedulesForTrip,
   getSchedulesForTripAndMonth,
@@ -447,6 +453,7 @@ router.get("/ticket-classes", getPaginatedTicketClasses);
  *         description: Failed to fetch trips
  */
 router.get("/trips", getAllTrips);
+router.post("/trips", requireApiRole("admin"), createTrip);
 
 /**
  * @swagger
@@ -471,6 +478,8 @@ router.get("/trips", getAllTrips);
  *         description: Failed to fetch trip
  */
 router.get("/trips/:id", getTripById);
+router.put("/trips/:id", requireApiRole("admin"), updateTrip);
+router.delete("/trips/:id", requireApiRole("admin"), deleteTrip);
 
 /**
  * @swagger
