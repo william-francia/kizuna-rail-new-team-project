@@ -53,4 +53,8 @@ const startServer = async () => {
   }
 };
 
-startServer();
+export default app;
+
+if (process.argv[1] && Path.resolve(process.argv[1]) === __filename) {
+  startServer();
+}
