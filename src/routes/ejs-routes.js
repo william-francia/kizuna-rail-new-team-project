@@ -41,10 +41,9 @@ router.get("/user/dashboard", requirePageLogin, (req, res) => {
 // User admin page
 router.get("/users", requirePageRole("admin"), userAdminPage);
 
-router.get('/403', (req, res) => {
-  res.status(403).render('errors/403', { 
-    title: '403 - Access Denied',
-    user: req.user || req.session?.user 
+router.get("/trains", (req, res) => {
+  res.render("trains", {
+    title: "Trains",
   });
 });
 
