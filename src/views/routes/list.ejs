@@ -3,17 +3,31 @@
     <h1><%- title %></h1>
 
     <div id="filters">
-        <label for="region-filter">Search by Region:</label>
-        <select id="region-filter" disabled>
-            <option value="all">All Regions</option>
-        </select>
+        <div class="trip-filter-control">
+            <label for="trip-search">Search trips:</label>
+            <input
+                id="trip-search"
+                type="search"
+                maxlength="100"
+                placeholder="Search name or description"
+            >
+        </div>
 
-        <label for="season-filter">Search by Season:</label>
-        <select id="season-filter" disabled>
-            <option value="all">Any Season</option>
-        </select>
+        <div class="trip-filter-control">
+            <label for="region-filter">Region:</label>
+            <select id="region-filter" data-client-managed="true">
+                <option value="">All Regions</option>
+            </select>
+        </div>
 
-        <p class="filters-note">Region and season filters are coming in the next update.</p>
+        <div class="trip-filter-control">
+            <label for="season-filter">Season:</label>
+            <select id="season-filter" data-client-managed="true">
+                <option value="">Any Season</option>
+            </select>
+        </div>
+
+        <p class="filters-note">Search and filters apply to all available trips.</p>
     </div>
 
     <p id="trip-status" aria-live="polite">Loading trips...</p>
@@ -80,9 +94,44 @@
         const pageStatus = document.querySelector("#trip-page-status");
         const previousPageButton = document.querySelector("#previous-page");
         const nextPageButton = document.querySelector("#next-page");
+        const searchInput = document.querySelector("#trip-search");
+        const regionFilter = document.querySelector("#region-filter");
+        const seasonFilter = document.querySelector("#season-filter");
 
-        let currentPage = 1;
+        const initialUrl = new URL(window.location.href);
+        const requestedPage = initialUrl.searchParams.get("page");
+        const parsedInitialPage = Number(requestedPage);
+        const initialPage = /^\d+$/.test(requestedPage || "")
+            && Number.isSafeInteger(parsedInitialPage)
+            && parsedInitialPage > 0
+            ? parsedInitialPage
+            : 1;
+
+        let currentPage = initialPage;
         let currentMeta = null;
+        let latestRequestId = 0;
+        let searchTimer;
+        let currentFilters = {
+            search: initialUrl.searchParams.get("search") || "",
+            region: initialUrl.searchParams.get("region") || "",
+            season: initialUrl.searchParams.get("season") || "",
+        };
+
+        searchInput.value = currentFilters.search;
+
+        function formatFilterLabel(value) {
+            return value.charAt(0).toUpperCase() + value.slice(1);
+        }
+
+        function populateFilterOptions(select, values, allLabel, selectedValue) {
+            select.replaceChildren(new Option(allLabel, ""));
+
+            values.forEach((value) => {
+                select.append(new Option(formatFilterLabel(value), value));
+            });
+
+            select.value = selectedValue || "";
+        }
 
         function renderTrips(trips) {
             const fragment = document.createDocumentFragment();
@@ -122,6 +171,32 @@
             tripsList.replaceChildren(fragment);
         }
 
+        function buildApiUrl(page) {
+            const parameters = new URLSearchParams({ page: String(page) });
+
+            if (currentFilters.region) {
+                parameters.set("region", currentFilters.region);
+            }
+
+            if (currentFilters.season) {
+                parameters.set("season", currentFilters.season);
+            }
+
+            if (currentFilters.search.trim()) {
+                parameters.set("search", currentFilters.search);
+            }
+
+            return `/api/trips?${parameters.toString()}`;
+        }
+
+        function setOrDeleteParameter(url, name, value) {
+            if (value) {
+                url.searchParams.set(name, value);
+            } else {
+                url.searchParams.delete(name);
+            }
+        }
+
         function updateBrowserUrl(page) {
             const url = new URL(window.location.href);
 
@@ -131,12 +206,36 @@
                 url.searchParams.set("page", page);
             }
 
+            setOrDeleteParameter(url, "region", currentFilters.region);
+            setOrDeleteParameter(url, "season", currentFilters.season);
+            setOrDeleteParameter(url, "search", currentFilters.search);
+
             window.history.replaceState({}, "", url);
         }
 
         function updatePagination(meta) {
             currentPage = meta.page;
             currentMeta = meta;
+            currentFilters = {
+                search: meta.filters.search || "",
+                region: meta.filters.region || "",
+                season: meta.filters.season || "",
+            };
+
+            searchInput.value = currentFilters.search;
+            populateFilterOptions(
+                regionFilter,
+                meta.availableFilters.regions,
+                "All Regions",
+                currentFilters.region
+            );
+            populateFilterOptions(
+                seasonFilter,
+                meta.availableFilters.seasons,
+                "Any Season",
+                currentFilters.season
+            );
+
             previousPageButton.disabled = !meta.hasPreviousPage;
             nextPageButton.disabled = !meta.hasNextPage;
             pageStatus.textContent = meta.totalPages
@@ -146,20 +245,33 @@
         }
 
         async function loadTrips(page = 1) {
+            const requestId = ++latestRequestId;
             tripStatus.textContent = "Loading trips...";
             previousPageButton.disabled = true;
             nextPageButton.disabled = true;
 
             try {
-                const response = await fetch(`/api/trips?page=${page}`);
+                const response = await fetch(buildApiUrl(page));
                 const data = await response.json().catch(() => ({}));
 
                 if (!response.ok) {
-                    throw new Error(data.error || "Unable to load trips.");
+                    const details = Array.isArray(data.details)
+                        ? data.details.map((detail) => detail.message).join(" ")
+                        : "";
+                    throw new Error(details || data.error || "Unable to load trips.");
                 }
 
-                if (!Array.isArray(data.results) || !data.meta) {
+                if (
+                    !Array.isArray(data.results)
+                    || !data.meta?.filters
+                    || !Array.isArray(data.meta?.availableFilters?.regions)
+                    || !Array.isArray(data.meta?.availableFilters?.seasons)
+                ) {
                     throw new Error("Invalid trips response.");
+                }
+
+                if (requestId !== latestRequestId) {
+                    return;
                 }
 
                 renderTrips(data.results);
@@ -170,13 +282,20 @@
                     const lastItem = firstItem + data.results.length - 1;
                     tripStatus.textContent = `Showing trips ${firstItem}-${lastItem} of ${data.meta.totalItems}.`;
                 } else if (data.meta.totalItems === 0) {
-                    tripStatus.textContent = "No trips are available.";
+                    const hasFilters = Object.values(data.meta.filters).some(Boolean);
+                    tripStatus.textContent = hasFilters
+                        ? "No trips match your search and filters."
+                        : "No trips are available.";
                 } else {
                     tripStatus.textContent = "No trips were found on this page.";
                 }
             } catch (error) {
+                if (requestId !== latestRequestId) {
+                    return;
+                }
+
                 tripsList.replaceChildren();
-                tripStatus.textContent = "Unable to load trips. Please try again later.";
+                tripStatus.textContent = error.message || "Unable to load trips. Please try again later.";
                 pageStatus.textContent = "";
                 currentMeta = null;
                 console.error(error);
@@ -195,10 +314,21 @@
             }
         });
 
-        const requestedPage = new URL(window.location.href).searchParams.get("page");
-        const initialPage = /^\d+$/.test(requestedPage || "") && Number(requestedPage) > 0
-            ? Number(requestedPage)
-            : 1;
+        regionFilter.addEventListener("change", () => {
+            currentFilters.region = regionFilter.value;
+            loadTrips(1);
+        });
+
+        seasonFilter.addEventListener("change", () => {
+            currentFilters.season = seasonFilter.value;
+            loadTrips(1);
+        });
+
+        searchInput.addEventListener("input", () => {
+            currentFilters.search = searchInput.value;
+            window.clearTimeout(searchTimer);
+            searchTimer = window.setTimeout(() => loadTrips(1), 300);
+        });
 
         loadTrips(initialPage);
     </script>

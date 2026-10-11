@@ -73,7 +73,13 @@ export async function verifyPassword(password, passwordHash) {
   return bcrypt.compare(password, passwordHash);
 }
 
-export async function getPaginatedUsers(page = 1, limit = 10, sort = "username") {
+export async function getPaginatedUsers(
+  page = 1,
+  limit = 10,
+  sort = "username",
+  role = "",
+  keyword = "",
+) {
   const sortFields = {
     username: 1,
     displayName: 1,
@@ -82,8 +88,33 @@ export async function getPaginatedUsers(page = 1, limit = 10, sort = "username")
 
   const skip = (page - 1) * limit;
 
+  const filters = {};
+
+  if (role) {
+    const roleDocument = await Role.findOne({ name: role }).select("_id");
+
+    if (!roleDocument) {
+      return {
+        users: [],
+        totalItems: 0,
+      };
+    }
+
+    filters.role = roleDocument._id;
+  }
+
+  if (keyword) {
+    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    filters.$or = [
+      { displayName: { $regex: escapedKeyword, $options: "i" } },
+      { username: { $regex: escapedKeyword, $options: "i" } },
+      { email: { $regex: escapedKeyword, $options: "i" } },
+    ];
+  }
+
   const [users, totalItems] = await Promise.all([
-    User.find()
+    User.find(filters)
       .populate("role")
       .select("displayName username email role")
       .sort({ [sort]: sortFields[sort] })
@@ -92,7 +123,7 @@ export async function getPaginatedUsers(page = 1, limit = 10, sort = "username")
       .limit(limit)
       .lean(),
 
-    User.countDocuments(),
+    User.countDocuments(filters),
   ]);
 
   return {

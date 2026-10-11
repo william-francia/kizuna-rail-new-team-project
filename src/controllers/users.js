@@ -31,6 +31,8 @@ export async function getUsers(req, res) {
     const pageValue = req.query.page ?? "1";
     const limitValue = req.query.limit ?? "10";
     const sort = req.query.sort ?? "username";
+    const role = req.query.role?.trim() ?? "";
+    const keyword = req.query.keyword?.trim() ?? "";
 
     const page = Number(pageValue);
     const limit = Number(limitValue);
@@ -63,10 +65,26 @@ export async function getUsers(req, res) {
       });
     }
 
+    const allowedRoles = ["admin", "customer"];
+
+    if (role && !allowedRoles.includes(role)) {
+      return res.status(400).json({
+        error: "Invalid role.",
+      });
+    }
+
+    if (keyword.length > 100) {
+      return res.status(400).json({
+        error: "Keyword must be 100 characters or fewer.",
+      });
+    }
+
     const { users, totalItems } = await getPaginatedUsers(
       page,
       limit,
       sort,
+      role,
+      keyword,
     );
 
     const totalPages = Math.ceil(totalItems / limit);
@@ -79,6 +97,8 @@ export async function getUsers(req, res) {
         totalItems,
         totalPages,
         sort,
+        role: role || null,
+        keyword: keyword || null,
       },
     });
   } catch (error) {
@@ -86,6 +106,34 @@ export async function getUsers(req, res) {
 
     return res.status(500).json({
       error: "Failed to fetch users",
+    });
+  }
+}
+
+export async function getUserByIdApi(req, res) {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({
+        error: "Invalid user ID",
+      });
+    }
+
+    const user = await getUserById(id);
+
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
+
+    return res.status(200).json(user);
+  } catch (error) {
+    console.error("Error fetching user:", error);
+
+    return res.status(500).json({
+      error: "Failed to fetch user",
     });
   }
 }

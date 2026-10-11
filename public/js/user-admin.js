@@ -2,6 +2,10 @@ const statusMessage = document.querySelector("#users-status");
 const usersList = document.querySelector("#users-list");
 const userTemplate = document.querySelector("#user-template");
 const pagination = document.querySelector("#users-pagination");
+const filterForm = document.querySelector("#user-filters");
+const keywordInput = document.querySelector("#user-keyword");
+const roleFilter = document.querySelector("#user-role-filter");
+const clearFiltersButton = document.querySelector("#clear-user-filters");
 
 const currentUserRole = document.body.dataset.userRole || "";
 const currentUserId = document.body.dataset.userId || "";
@@ -9,11 +13,25 @@ const currentUserId = document.body.dataset.userId || "";
 let currentPage = 1;
 const usersPerPage = 10;
 const sortField = "username";
+let currentKeyword = "";
+let currentRole = "";
 
 const fetchUsers = async () => {
-  const response = await fetch(
-    `/api/users?page=${currentPage}&limit=${usersPerPage}&sort=${sortField}`,
-  );
+  const params = new URLSearchParams({
+    page: currentPage,
+    limit: usersPerPage,
+    sort: sortField,
+  });
+
+  if (currentRole) {
+    params.set("role", currentRole);
+  }
+
+  if (currentKeyword) {
+    params.set("keyword", currentKeyword);
+  }
+
+  const response = await fetch(`/api/users?${params.toString()}`);
 
   if (!response.ok) {
     throw new Error("Unable to load users.");
@@ -185,5 +203,26 @@ const loadUsers = async () => {
     statusMessage.textContent = error.message;
   }
 };
+
+filterForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  currentKeyword = keywordInput.value.trim();
+  currentRole = roleFilter.value;
+  currentPage = 1;
+
+  loadUsers();
+});
+
+clearFiltersButton.addEventListener("click", () => {
+  keywordInput.value = "";
+  roleFilter.value = "";
+
+  currentKeyword = "";
+  currentRole = "";
+  currentPage = 1;
+
+  loadUsers();
+});
 
 loadUsers();

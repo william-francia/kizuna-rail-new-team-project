@@ -1,6 +1,6 @@
 const hookRegionSorter = () => {
     const regionSelect = document.getElementById('region-filter');
-    if (regionSelect) {
+    if (regionSelect && regionSelect.dataset.clientManaged !== 'true') {
         regionSelect.addEventListener('change', () => {
             const selectedRegion = regionSelect.value;
             const url = new URL(window.location.href);
@@ -18,7 +18,7 @@ const hookRegionSorter = () => {
 
 const hookSeasonSorter = () => {
     const seasonSelect = document.getElementById('season-filter');
-    if (seasonSelect) {
+    if (seasonSelect && seasonSelect.dataset.clientManaged !== 'true') {
         seasonSelect.addEventListener('change', () => {
             const selectedSeason = seasonSelect.value;
             const url = new URL(window.location.href);

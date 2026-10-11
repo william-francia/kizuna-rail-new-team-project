@@ -16,6 +16,28 @@
     </div>
 
     <section class="user-admin">
+      <form id="user-filters" class="user-filters">
+        <label>
+          Search users
+          <input id="user-keyword" type="search" name="keyword" placeholder="Name, username, or email"
+            maxlength="100" />
+        </label>
+
+        <label>
+          Role
+          <select id="user-role-filter" name="role">
+            <option value="">All roles</option>
+            <option value="admin">Admin</option>
+            <option value="customer">Customer</option>
+          </select>
+        </label>
+
+        <div class="user-filter-actions">
+          <button type="submit">Search</button>
+          <button type="button" id="clear-user-filters">Clear</button>
+        </div>
+      </form>
+
       <p id="users-status" class="users-status" aria-live="polite">
         Loading users...
       </p>
@@ -76,6 +98,34 @@
 
     .users-status {
       margin-bottom: 1rem;
+    }
+
+    .user-filters {
+      display: grid;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      border: 1px solid rgba(128, 128, 128, 0.3);
+      border-radius: 8px;
+    }
+
+    .user-filters label {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .user-filters input,
+    .user-filters select {
+      padding: 0.5rem;
+    }
+
+    .user-filter-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .user-filter-actions button {
+      padding: 0.5rem 1rem;
     }
 
     .users-list {

@@ -78,8 +78,8 @@ test("getTripsPage returns a deterministic second page from 11 records", async (
   }));
   const fakeTripModel = createFakeTripModel(trips);
 
-  const firstPage = await getTripsPage(1, TRIPS_PER_PAGE, fakeTripModel);
-  const secondPage = await getTripsPage(2, TRIPS_PER_PAGE, fakeTripModel);
+  const firstPage = await getTripsPage(1, TRIPS_PER_PAGE, {}, fakeTripModel);
+  const secondPage = await getTripsPage(2, TRIPS_PER_PAGE, {}, fakeTripModel);
 
   assert.equal(firstPage.results.length, 10);
   assert.deepEqual(firstPage.results[0], { id: "trip-01" });
@@ -94,7 +94,11 @@ test("paginated trips controller returns results and metadata for page 2", async
     page,
     perPage,
   });
-  const handler = createGetAllTrips(findPage);
+  const findFilterOptions = async () => ({
+    regions: ["central"],
+    seasons: ["autumn"],
+  });
+  const handler = createGetAllTrips(findPage, findFilterOptions);
   const response = createResponse();
 
   await handler({ query: { page: "2" } }, response);
@@ -109,6 +113,15 @@ test("paginated trips controller returns results and metadata for page 2", async
       totalPages: 2,
       hasNextPage: false,
       hasPreviousPage: true,
+      filters: {
+        search: null,
+        region: null,
+        season: null,
+      },
+      availableFilters: {
+        regions: ["central"],
+        seasons: ["autumn"],
+      },
     },
   });
 });

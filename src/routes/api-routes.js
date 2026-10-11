@@ -1,11 +1,13 @@
 import { Router } from "express";
 
 import {
+  getPaginatedTicketClasses,
   getAllTicketClasses,
   getTicketClassesForDay,
 } from "../controllers/ticket-classes.js";
 
 import {
+  createTrip,
   getAllTrips,
   getTripById,
   deleteTrip,
@@ -30,6 +32,7 @@ import {
 
 import {
   getUsers,
+  getUserByIdApi,
   updateUserById,
   deleteUserById,
 } from "../controllers/users.js";
@@ -45,7 +48,6 @@ import {
   requireApiLogin,
   requireApiRole,
 } from "../middleware/auth.js";
-
 
 const router = Router();
 
@@ -133,18 +135,62 @@ const router = Router();
  * @swagger
  * /api/bookings:
  *   get:
- *     summary: Get bookings visible to the current user
+ *     summary: Get a page of bookings visible to the current user
  *     tags: [Bookings]
- *     description: Admins receive every booking. Standard users receive only bookings where their email matches a passenger.
+ *     description: "Admins page through every booking. Standard users page through bookings where their email matches a passenger. Sorted by booking date, newest first. Optional filters include ticket class and booking date range."
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: 1-based page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 50
+ *           default: 10
+ *         description: Bookings per page
+ *       - in: query
+ *         name: ticketClass
+ *         schema:
+ *           type: string
+ *         description: Only bookings with this ticket class (case-insensitive)
+ *       - in: query
+ *         name: from
+ *         schema:
+ *           type: string
+ *         description: Only bookings made on or after this date (YYYY-MM-DD or ISO date-time)
+ *       - in: query
+ *         name: to
+ *         schema:
+ *           type: string
+ *         description: Only bookings made on or before this date (YYYY-MM-DD or ISO date-time)
  *     responses:
  *       200:
- *         description: A list of bookings, newest first.
+ *         description: One page of bookings.
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Booking'
+ *               type: object
+ *               properties:
+ *                 bookings:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Booking'
+ *                 page:
+ *                   type: integer
+ *                 limit:
+ *                   type: integer
+ *                 total:
+ *                   type: integer
+ *                 totalPages:
+ *                   type: integer
+ *       400:
+ *         description: Invalid date, or "from" is after "to".
  *       401:
  *         description: Not authenticated.
  *       500:
@@ -229,11 +275,38 @@ router.delete("/bookings/:id", requireApiLogin, deleteBooking);
  * @swagger
  * /api/ticket-classes:
  *   get:
- *     summary: Get ticket classes
- *     description: Returns all ticket classes or filters them by day.
+ *     summary: Get paginated and searchable ticket classes
+ *     description: Returns ticket classes with pagination, optional search, and optional day filtering.
  *     tags:
  *       - Ticket Classes
  *     parameters:
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         description: Page number. Must be a positive integer.
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *           example: 1
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         description: Number of ticket classes per page. Must be between 1 and 10.
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 10
+ *           default: 10
+ *           example: 10
+ *       - in: query
+ *         name: search
+ *         required: false
+ *         description: Case-insensitive search by ticket class or name. Partial matches are supported.
+ *         schema:
+ *           type: string
+ *           maxLength: 50
+ *           example: premium
  *       - in: query
  *         name: day
  *         required: false
@@ -251,23 +324,38 @@ router.delete("/bookings/:id", requireApiLogin, deleteBooking);
  *           example: monday
  *     responses:
  *       200:
- *         description: Ticket classes retrieved successfully.
+ *         description: Paginated ticket classes retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   description: Ticket classes matching the search and day filters for the requested page.
+ *                   items:
+ *                     type: object
+ *                 metadata:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: integer
+ *                       example: 3
+ *                     page:
+ *                       type: integer
+ *                       example: 1
+ *                     limit:
+ *                       type: integer
+ *                       example: 10
+ *                     totalPages:
+ *                       type: integer
+ *                       example: 1
  *       400:
- *         description: Invalid day.
+ *         description: Invalid page, limit, search, or day.
  *       500:
  *         description: Server error.
  */
-router.get("/ticket-classes", async (req, res, next) => {
-  try {
-    if (req.query.day) {
-      return await getTicketClassesForDay(req, res);
-    }
-
-    return await getAllTicketClasses(req, res);
-  } catch (error) {
-    next(error);
-  }
-});
+router.get("/ticket-classes", getPaginatedTicketClasses);
 
 /**
  * @swagger
@@ -403,6 +491,25 @@ router.get("/trains/:id", getTrainById);
  *           type: integer
  *           minimum: 1
  *           default: 1
+ *       - in: query
+ *         name: region
+ *         required: false
+ *         description: Exact region value from meta.availableFilters.regions.
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: season
+ *         required: false
+ *         description: Exact bestSeason value from meta.availableFilters.seasons.
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: search
+ *         required: false
+ *         description: Case-insensitive partial match against trip name or description. Blank values are ignored.
+ *         schema:
+ *           type: string
+ *           maxLength: 100
  *     responses:
  *       200:
  *         description: A page containing up to 10 trips.
@@ -419,6 +526,17 @@ router.get("/trains/:id", getTrainById);
  *                   maxItems: 10
  *                   items:
  *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       region:
+ *                         type: string
+ *                       bestSeason:
+ *                         type: string
  *                 meta:
  *                   type: object
  *                   required:
@@ -428,6 +546,8 @@ router.get("/trains/:id", getTrainById);
  *                     - totalPages
  *                     - hasNextPage
  *                     - hasPreviousPage
+ *                     - filters
+ *                     - availableFilters
  *                   properties:
  *                     page:
  *                       type: integer
@@ -447,12 +567,73 @@ router.get("/trains/:id", getTrainById);
  *                     hasPreviousPage:
  *                       type: boolean
  *                       example: false
+ *                     filters:
+ *                       type: object
+ *                       required:
+ *                         - search
+ *                         - region
+ *                         - season
+ *                       properties:
+ *                         search:
+ *                           type: string
+ *                           nullable: true
+ *                           example: alpine
+ *                         region:
+ *                           type: string
+ *                           nullable: true
+ *                           example: central
+ *                         season:
+ *                           type: string
+ *                           nullable: true
+ *                           example: autumn
+ *                     availableFilters:
+ *                       type: object
+ *                       required:
+ *                         - regions
+ *                         - seasons
+ *                       properties:
+ *                         regions:
+ *                           type: array
+ *                           items:
+ *                             type: string
+ *                           example: [central, kansa, kansai, northern]
+ *                         seasons:
+ *                           type: array
+ *                           items:
+ *                             type: string
+ *                           example: [autumn, spring, summer, winter]
  *       400:
- *         description: The page parameter is not a positive integer.
+ *         description: The page parameter or one or more filters are invalid.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required:
+ *                 - error
+ *                 - details
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Invalid trip filters
+ *                 details:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     required:
+ *                       - field
+ *                       - message
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                         example: region
+ *                       message:
+ *                         type: string
+ *                         example: "Unknown region filter: unknown"
  *       500:
  *         description: Failed to fetch trips
  */
 router.get("/trips", getAllTrips);
+router.post("/trips", requireApiRole("admin"), createTrip);
 
 /**
  * @swagger
@@ -477,6 +658,8 @@ router.get("/trips", getAllTrips);
  *         description: Failed to fetch trip
  */
 router.get("/trips/:id", getTripById);
+router.put("/trips/:id", requireApiRole("admin"), updateTrip);
+router.delete("/trips/:id", requireApiRole("admin"), deleteTrip);
 
 /**
  * @swagger
@@ -561,7 +744,7 @@ router.get("/trips/:id/schedules", (req, res, next) => {
  *         updatedAt:
  *           type: string
  *           format: date-time
- *           description: Timestamp when the record was last updated
+ *           description: Timestamp when the record was updated
  *           example: "2026-03-20T14:22:00.000Z"
  */
 
@@ -583,7 +766,7 @@ router.get("/trips/:id/schedules", (req, res, next) => {
  *       500:
  *         description: Internal server error
  */
-router.get('/stations', getAllStations);
+router.get("/stations", getAllStations);
 
 /**
  * @swagger
@@ -607,14 +790,14 @@ router.get('/stations', getAllStations);
  *       500:
  *         description: Internal server error
  */
-router.get('/stations/:id', getStationById);
+router.get("/stations/:id", getStationById);
 
 /**
  * @swagger
  * /api/users:
  *   get:
- *     summary: Get paginated users
- *     description: Returns a paginated list of users for administrators.
+ *     summary: Get paginated users with optional filtering and keyword search
+ *     description: Returns a paginated list of users for administrators. Users can be filtered by role and searched by display name, username, or email address.
  *     tags: [Users]
  *     parameters:
  *       - in: query
@@ -644,6 +827,22 @@ router.get('/stations/:id', getStationById);
  *             - displayName
  *             - email
  *           default: username
+ *       - in: query
+ *         name: role
+ *         required: false
+ *         description: Filter users by role.
+ *         schema:
+ *           type: string
+ *           enum:
+ *             - admin
+ *             - customer
+ *       - in: query
+ *         name: keyword
+ *         required: false
+ *         description: Search display names, usernames, and email addresses.
+ *         schema:
+ *           type: string
+ *           maxLength: 100
  *     responses:
  *       200:
  *         description: Paginated users retrieved successfully.
@@ -683,8 +882,14 @@ router.get('/stations/:id', getStationById);
  *                       type: integer
  *                     sort:
  *                       type: string
+ *                     role:
+ *                       type: string
+ *                       nullable: true
+ *                     keyword:
+ *                       type: string
+ *                       nullable: true
  *       400:
- *         description: Invalid pagination or sorting parameters.
+ *         description: Invalid pagination, sorting, role, or keyword parameters.
  *       401:
  *         description: Not authenticated.
  *       403:
@@ -692,9 +897,58 @@ router.get('/stations/:id', getStationById);
  *       500:
  *         description: Failed to fetch users.
  */
+
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   get:
+ *     summary: Get one user by ID
+ *     description: Returns a single user for administrators. Password hashes and other private authentication data are not exposed.
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: MongoDB ObjectId of the user.
+ *         schema:
+ *           type: string
+ *           example: 507f1f77bcf86cd799439011
+ *     responses:
+ *       200:
+ *         description: User retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                 displayName:
+ *                   type: string
+ *                 username:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 role:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *       400:
+ *         description: Invalid user ID.
+ *       401:
+ *         description: Not authenticated.
+ *       403:
+ *         description: Administrator access required.
+ *       404:
+ *         description: User not found.
+ *       500:
+ *         description: Failed to fetch user.
+ */
+
 router.get("/users", requireApiRole("admin"), getUsers);
+router.get("/users/:id", requireApiRole("admin"), getUserByIdApi);
 router.put("/users/:id", requireApiLogin, updateUserById);
 router.delete("/users/:id", requireApiLogin, deleteUserById);
-
 
 export default router;
