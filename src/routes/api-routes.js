@@ -6,7 +6,13 @@ import {
   updateBooking,
   deleteBooking,
 } from "../controllers/bookings.js";
-import { getAllTrips, getTripById } from "../controllers/trips.js";
+import {
+  createTrip,
+  deleteTrip,
+  getAllTrips,
+  getTripById,
+  updateTrip,
+} from "../controllers/trips.js";
 import {
   getSchedulesForTrip,
   getSchedulesForTripAndMonth,
@@ -14,6 +20,7 @@ import {
 import { getAllStations, getStationById } from "../controllers/stations.js";
 import {
   getUsers,
+  getUserByIdApi,
   updateUserById,
   deleteUserById,
 } from "../controllers/users.js";
@@ -446,6 +453,7 @@ router.get("/ticket-classes", getPaginatedTicketClasses);
  *         description: Failed to fetch trips
  */
 router.get("/trips", getAllTrips);
+router.post("/trips", requireApiRole("admin"), createTrip);
 
 /**
  * @swagger
@@ -470,6 +478,8 @@ router.get("/trips", getAllTrips);
  *         description: Failed to fetch trip
  */
 router.get("/trips/:id", getTripById);
+router.put("/trips/:id", requireApiRole("admin"), updateTrip);
+router.delete("/trips/:id", requireApiRole("admin"), deleteTrip);
 
 /**
  * @swagger
@@ -711,7 +721,57 @@ router.get("/stations/:id", getStationById);
  *       500:
  *         description: Failed to fetch users.
  */
+
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   get:
+ *     summary: Get one user by ID
+ *     description: Returns a single user for administrators. Password hashes and other private authentication data are not exposed.
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: MongoDB ObjectId of the user.
+ *         schema:
+ *           type: string
+ *           example: 507f1f77bcf86cd799439011
+ *     responses:
+ *       200:
+ *         description: User retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                 displayName:
+ *                   type: string
+ *                 username:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 role:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *       400:
+ *         description: Invalid user ID.
+ *       401:
+ *         description: Not authenticated.
+ *       403:
+ *         description: Administrator access required.
+ *       404:
+ *         description: User not found.
+ *       500:
+ *         description: Failed to fetch user.
+ */
+
 router.get("/users", requireApiRole("admin"), getUsers);
+router.get("/users/:id", requireApiRole("admin"), getUserByIdApi);
 router.put("/users/:id", requireApiLogin, updateUserById);
 router.delete("/users/:id", requireApiLogin, deleteUserById);
 
