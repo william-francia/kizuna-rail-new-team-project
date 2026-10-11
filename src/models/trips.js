@@ -5,6 +5,12 @@ export async function getTripById(id) {
   return Trip.findOne({ id }).lean();
 }
 
+export async function createTrip(tripData) {
+  const trip = await Trip.create(tripData);
+
+  return trip.toObject();
+}
+
 export function escapeSearchText(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

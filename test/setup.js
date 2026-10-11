@@ -4,6 +4,8 @@ import Path from "path";
 
 let mongoServer;
 
+process.env.SESSION_SECRET = "test-session-secret";
+
 process.env.MONGOMS_DOWNLOAD_DIR = Path.join(
   process.cwd(),
   ".cache",

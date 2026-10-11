@@ -1,5 +1,6 @@
 import {
   getTripById as findTripById,
+  createTrip as createTripModel,
   getTripsPage as findTripsPage,
   getTripFilterOptions as findTripFilterOptions,
   updateTripById as updateTripModel,
@@ -175,6 +176,53 @@ export async function getTripById(req, res) {
 }
 
 export const getAllTrips = createGetAllTrips();
+
+export async function createTrip(req, res) {
+  const {
+    id,
+    name,
+    description,
+    region,
+    startStation,
+    endStation,
+    duration,
+    distance,
+    highlights,
+    bestSeason,
+    operatingMonths,
+    imageUrl,
+  } = req.body;
+
+  try {
+    const trip = await createTripModel({
+      id,
+      name,
+      description,
+      region,
+      startStation,
+      endStation,
+      duration,
+      distance,
+      highlights,
+      bestSeason,
+      operatingMonths,
+      imageUrl,
+    });
+
+    return res.status(201).json(trip);
+  } catch (error) {
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      return res.status(400).json({ message: "Invalid trip data" });
+    }
+
+    if (error.code === 11000) {
+      return res.status(409).json({ message: "Trip ID already exists" });
+    }
+
+    console.error("Error creating trip:", error);
+    return res.status(500).json({ message: "Server error creating trip" });
+  }
+}
 
 export async function renderTripListPage(req, res) {
   return res.render("routes/list", {
