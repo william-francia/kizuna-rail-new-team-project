@@ -1,68 +1,69 @@
-import test from "node:test";
-import assert from "node:assert/strict";
+import { beforeAll, beforeEach, afterAll, describe, expect, it } from "vitest";
+import request from "supertest";
 
-function createResponse() {
-  return {
-    statusCode: 200,
-    body: undefined,
-    status(code) {
-      this.statusCode = code;
-      return this;
-    },
-    json(body) {
-      this.body = body;
-      return this;
-    },
-  };
-}
+import app from "../app.js";
+import Schedule from "../src/models/schemas/schedules.js";
+import scheduleFixtures from "../src/models/seeds/schedules.json" with { type: "json" };
+import routeFixtures from "../src/models/seeds/routes.json" with { type: "json" };
 
-test("GET /api/schedules returns all schedules successfully", async () => {
-  const fakeSchedules = [
-    { id: "sched-01", tripId: "trip-01", departureTime: "08:00" },
-    { id: "sched-02", tripId: "trip-02", departureTime: "10:00" },
-  ];
+import {
+  setupTestDatabase,
+  clearTestDatabase,
+  teardownTestDatabase,
+} from "./setup.js";
 
-  const response = createResponse();
-  response.json(fakeSchedules);
+const knownTripId = routeFixtures.routes ? routeFixtures.routes[0].id : "alpine-panorama";
+const knownSchedule = scheduleFixtures[0];
 
-  assert.equal(response.statusCode, 200);
-  assert.equal(response.body.length, 2);
-  assert.equal(response.body[0].id, "sched-01");
+beforeAll(async () => {
+  await setupTestDatabase();
 });
 
-test("GET /api/schedules/:id returns a single schedule when it exists", async () => {
-  const fakeSchedule = { id: "sched-01", tripId: "trip-01", departureTime: "08:00" };
-  
-  const response = createResponse();
-  response.json(fakeSchedule);
-
-  assert.equal(response.statusCode, 200);
-  assert.equal(response.body.id, "sched-01");
-  assert.ok(response.body.tripId);
+beforeEach(async () => {
+  await clearTestDatabase();
+  await Schedule.insertMany(scheduleFixtures);
 });
 
-test("GET /api/schedules/:id returns 404 when the schedule does not exist", async () => {
-  const response = createResponse();
-  response.status(404).json({ error: "Schedule not found" });
-
-  assert.equal(response.statusCode, 404);
-  assert.equal(response.body.error, "Schedule not found");
+afterAll(async () => {
+  await teardownTestDatabase();
 });
 
-test("GET /api/trips/:id/schedules returns only schedules connected to the specified trip", async () => {
-  const targetTripId = "trip-01";
-  const allSchedules = [
-    { id: "sched-01", tripId: "trip-01", departureTime: "08:00" },
-    { id: "sched-02", tripId: "trip-01", departureTime: "12:00" },
-    { id: "sched-03", tripId: "trip-02", departureTime: "09:00" }, 
-  ];
+describe("GET /api/schedules", () => {
+  it("returns all schedules successfully without authentication", async () => {
+    const response = await request(app).get("/api/schedules");
 
-  const tripSchedules = allSchedules.filter(s => s.tripId === targetTripId);
-  
-  const response = createResponse();
-  response.json(tripSchedules);
+    expect(response.status).toBe(200);
+    expect(response.headers["content-type"]).toMatch(/json/);
+    const results = response.body.results || response.body;
+    expect(results.length).toBe(scheduleFixtures.length);
+  });
+});
 
-  assert.equal(response.statusCode, 200);
-  assert.equal(response.body.length, 2);
-  assert.ok(response.body.every(s => s.tripId === targetTripId));
+describe("GET /api/schedules/:id", () => {
+  it("returns a known schedule by its stable ID", async () => {
+    const response = await request(app).get(`/api/schedules/${knownSchedule.id}`);
+
+    expect(response.status).toBe(200);
+    expect(response.headers["content-type"]).toMatch(/json/);
+    expect(response.body.id).toBe(knownSchedule.id);
+  });
+
+  it("returns 404 when the schedule ID does not exist", async () => {
+    const response = await request(app).get("/api/schedules/nonexistent-schedule-id");
+
+    expect(response.status).toBe(404);
+    expect(response.headers["content-type"]).toMatch(/json/);
+    expect(response.body).toEqual({ error: "Schedule not found" });
+  });
+});
+
+describe("GET /api/trips/:id/schedules", () => {
+  it("returns schedules connected to a specific trip", async () => {
+    const response = await request(app).get(`/api/trips/${knownTripId}/schedules`);
+
+    expect(response.status).toBe(200);
+    expect(response.headers["content-type"]).toMatch(/json/);
+    const results = Array.isArray(response.body) ? response.body : response.body.results;
+    expect(results.every((s) => s.tripId === knownTripId || s.routeId === knownTripId)).toBe(true);
+  });
 });
