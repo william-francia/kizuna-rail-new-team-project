@@ -55,6 +55,7 @@ describe("GET /api/schedules/:id", () => {
     expect(response.headers["content-type"]).toMatch(/json/);
     expect(response.body).toEqual({ error: "Schedule not found" });
   });
+  
 });
 
 describe("GET /api/trips/:id/schedules", () => {
