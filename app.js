@@ -83,7 +83,8 @@ app.use((req, res, next) => {
   next(err);
 });
 
-app.use((err, req, res) => {
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
   const status = err.status || 500;
   const template = status === 404 ? "404" : "500";
 
