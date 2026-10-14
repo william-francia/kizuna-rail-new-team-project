@@ -176,6 +176,32 @@ export async function getAllBookings(req, res) {
   }
 }
 
+// GET /api/bookings/:id
+// Admins may read any booking; standard users only bookings where they are a passenger.
+export async function getBooking(req, res) {
+  try {
+    const { id } = req.params;
+    const user = req.user;
+    const booking = await findBookingById(id);
+
+    if (!booking) {
+      return res.status(404).json({ error: "Booking not found" });
+    }
+
+    if (!isOwnerOrAdmin(user, booking)) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    return res.status(200).json(booking);
+  } catch (error) {
+    console.error("Error fetching booking:", error);
+
+    return res.status(500).json({
+      error: "Failed to fetch booking",
+    });
+  }
+}
+
 export async function updateBooking(req, res) {
   try {
     const { id } = req.params;
