@@ -1,10 +1,5 @@
 import mongoose from "mongoose";
-import {
-  getPaginatedUsers,
-  getUserById,
-  updateUser,
-  deleteUser,
-} from "../models/users.js";
+import { getPaginatedUsers, updateUser, deleteUser } from "../models/users.js";
 
 export function userAdminPage(req, res) {
   res.render("user-admin", {
